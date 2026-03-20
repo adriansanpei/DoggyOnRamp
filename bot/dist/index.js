@@ -1,37 +1,4 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -63,10 +30,15 @@ async function sendDoggy(buyerWallet, doggyAmount, orderId) {
         const mintPk = new web3_js_1.PublicKey(DOGGY_MINT);
         const fromAta = await (0, spl_token_1.getAssociatedTokenAddress)(mintPk, distributorKeypair.publicKey);
         const toAta = await (0, spl_token_1.getAssociatedTokenAddress)(mintPk, buyerPk);
-        // Create ATA for buyer if needed
-        const { Transaction: SolTransaction } = await Promise.resolve().then(() => __importStar(require("@solana/web3.js")));
         const tx = new web3_js_1.Transaction();
-        tx.add((0, spl_token_1.createTransferInstruction)(fromAta, toAta, distributorKeypair.publicKey, Math.floor(doggyAmount), [], spl_token_1.TOKEN_PROGRAM_ID));
+        // Create ATA for buyer if it doesn't exist
+        try {
+            await (0, spl_token_1.getAccount)(connection, toAta);
+        }
+        catch {
+            tx.add((0, spl_token_1.createAssociatedTokenAccountInstruction)(distributorKeypair.publicKey, toAta, buyerPk, mintPk, spl_token_1.TOKEN_PROGRAM_ID));
+        }
+        tx.add((0, spl_token_1.createTransferInstruction)(fromAta, toAta, distributorKeypair.publicKey, Math.floor(doggyAmount * 1e6), [], spl_token_1.TOKEN_PROGRAM_ID));
         const sig = await connection.sendTransaction(tx, [distributorKeypair]);
         await connection.confirmTransaction(sig, "confirmed");
         // Update order
