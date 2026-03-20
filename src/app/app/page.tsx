@@ -32,6 +32,7 @@ export default function AppPage() {
   useEffect(() => { localStorage.setItem("doggy_tab", activeTab); }, [activeTab]);
   const [username, setUsername] = useState("");
   const [walletReady, setWalletReady] = useState(false);
+  const [sidebarName, setSidebarName] = useState("Usuario");
   const { isConnected } = useAccount();
   const { disconnectAsync } = useDisconnect();
   const { getUserInfo } = useParticleAuth();
@@ -115,9 +116,18 @@ export default function AppPage() {
     checkUser();
   }, [isConnected]);
 
+  // Update sidebar name when Particle is ready
+  useEffect(() => {
+    if (!isConnected) return;
+    try {
+      const info = getUserInfo();
+      if (info?.name) setSidebarName(info.name);
+    } catch {}
+  }, [isConnected]);
+
   let userInfo: any = null;
   try { userInfo = isConnected ? getUserInfo() : null; } catch {}
-  const userName = userInfo?.name || "Usuario";
+  const userName = userInfo?.name || sidebarName;
   const solWallet = userInfo?.wallets?.find((w: any) => w.chain_name.toLowerCase().includes("solana"));
   const solAddress = solWallet?.public_address || "";
   const truncated = solAddress ? `${solAddress.slice(0, 4)}...${solAddress.slice(-4)}` : "";
@@ -126,6 +136,7 @@ export default function AppPage() {
     if (!username.trim()) return;
     const userInfo = getUserInfo();
     await supabase.from("doggy_users").update({ name: username.trim() }).eq("particle_user_id", userInfo.uuid);
+    setSidebarName(username.trim());
     setUsernameModal(false);
   };
 
