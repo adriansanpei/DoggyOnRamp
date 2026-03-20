@@ -1,0 +1,221 @@
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const node_telegram_bot_api_1 = __importDefault(require("node-telegram-bot-api"));
+const supabase_js_1 = require("@supabase/supabase-js");
+const web3_js_1 = require("@solana/web3.js");
+const spl_token_1 = require("@solana/spl-token");
+const bs58_1 = __importDefault(require("bs58"));
+const express_1 = __importDefault(require("express"));
+// === ENV ===
+const BOT_TOKEN = process.env.HACKATHON_TELEGRAM_BOT_TOKEN;
+const ADMIN_CHAT_ID = parseInt(process.env.ADMIN_CHAT_ID || "2137908952");
+const SUPABASE_URL = process.env.HACKATHON_SUPABASE_URL;
+const SUPABASE_KEY = process.env.HACKATHON_SUPABASE_SERVICE_KEY;
+const RPC_URL = process.env.HACKATHON_SOLANA_RPC || "https://api.mainnet-beta.solana.com";
+const DISTRIBUTOR_PRIVATE_KEY = process.env.HACKATHON_DOGGY_DISTRIBUTOR_KEY;
+const DOGGY_MINT = "BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump";
+const BOT_PORT = parseInt(process.env.BOT_PORT || "3100");
+const supabase = (0, supabase_js_1.createClient)(SUPABASE_URL, SUPABASE_KEY);
+const connection = new web3_js_1.Connection(RPC_URL, "confirmed");
+const distributorKeypair = web3_js_1.Keypair.fromSecretKey(bs58_1.default.decode(DISTRIBUTOR_PRIVATE_KEY));
+// === BOT SETUP ===
+const bot = new node_telegram_bot_api_1.default(BOT_TOKEN, { polling: true });
+// === HELPER: Send DOGGY ===
+async function sendDoggy(buyerWallet, doggyAmount, orderId) {
+    try {
+        const buyerPk = new web3_js_1.PublicKey(buyerWallet);
+        const mintPk = new web3_js_1.PublicKey(DOGGY_MINT);
+        const fromAta = await (0, spl_token_1.getAssociatedTokenAddress)(mintPk, distributorKeypair.publicKey);
+        const toAta = await (0, spl_token_1.getAssociatedTokenAddress)(mintPk, buyerPk);
+        // Create ATA for buyer if needed
+        const { Transaction: SolTransaction } = await Promise.resolve().then(() => __importStar(require("@solana/web3.js")));
+        const tx = new web3_js_1.Transaction();
+        tx.add((0, spl_token_1.createTransferInstruction)(fromAta, toAta, distributorKeypair.publicKey, Math.floor(doggyAmount), [], spl_token_1.TOKEN_PROGRAM_ID));
+        const sig = await connection.sendTransaction(tx, [distributorKeypair]);
+        await connection.confirmTransaction(sig, "confirmed");
+        // Update order
+        await supabase
+            .from("doggy_orders")
+            .update({ status: "completed", solana_tx_signature: sig })
+            .eq("id", orderId);
+        return sig;
+    }
+    catch (err) {
+        console.error("sendDoggy error:", err);
+        return null;
+    }
+}
+// === COMMANDS ===
+bot.onText(/\/start/, (msg) => {
+    bot.sendMessage(msg.chat.id, "🐕 *DOGGY OnRamp Bot*\n\nComandos:\n/start - Inicio\n/orders - Órdenes pendientes\n/stats - Estadísticas", { parse_mode: "Markdown" });
+});
+bot.onText(/\/orders/, async (msg) => {
+    const { data: orders } = await supabase
+        .from("doggy_orders")
+        .select("*")
+        .in("status", ["pending", "payment_reported"])
+        .order("created_at", { ascending: false })
+        .limit(10);
+    if (!orders?.length) {
+        return bot.sendMessage(msg.chat.id, "📭 No hay órdenes pendientes.");
+    }
+    const text = orders.map((o) => `🆔 ${o.id.slice(0, 8)}... | $${o.mxn_amount} MXN → ${o.doggy_amount} DOGGY | Status: ${o.status} | Wallet: ${o.user_wallet?.slice(0, 8)}...`).join("\n");
+    bot.sendMessage(msg.chat.id, `📋 *Órdenes pendientes:*\n\n${text}`, { parse_mode: "Markdown" });
+});
+bot.onText(/\/stats/, async (msg) => {
+    const { data: completed } = await supabase.from("doggy_orders").select("mxn_amount, doggy_amount").eq("status", "completed");
+    const { count: total } = await supabase.from("doggy_orders").select("*", { count: "exact", head: true });
+    const totalMxn = completed?.reduce((s, o) => s + (o.mxn_amount || 0), 0) || 0;
+    const totalDoggy = completed?.reduce((s, o) => s + (o.doggy_amount || 0), 0) || 0;
+    bot.sendMessage(msg.chat.id, `📊 *Stats DOGGY OnRamp*\n\n` +
+        `📦 Total órdenes: ${total}\n` +
+        `✅ Completadas: ${completed?.length || 0}\n` +
+        `💰 MXN recibido: $${totalMxn.toFixed(2)}\n` +
+        `🐕 DOGGY enviado: ${totalDoggy.toLocaleString()}`, { parse_mode: "Markdown" });
+});
+// === INLINE BUTTON HANDLERS ===
+bot.on("callback_query", async (query) => {
+    if (!query.data || !query.message)
+        return;
+    const chatId = query.message.chat.id;
+    const data = query.data;
+    await bot.answerCallbackQuery(query.id);
+    if (data.startsWith("c:")) {
+        // Confirm payment - search by partial ID
+        const partialId = data.slice(2);
+        const { data: orders } = await supabase.from("doggy_orders").select("*").ilike("id", `${partialId}%`).eq("status", "payment_reported").limit(1);
+        if (!orders?.length)
+            return bot.sendMessage(chatId, "❌ Orden no encontrada.");
+        const order = orders[0];
+        bot.sendMessage(chatId, `⏳ Enviando ${order.doggy_amount} DOGGY a ${order.user_wallet?.slice(0, 8)}...`);
+        const sig = await sendDoggy(order.user_wallet, order.doggy_amount, order.id);
+        if (sig) {
+            bot.sendMessage(chatId, `✅ *DOGGY enviado!*\n\n` +
+                `🐕 ${order.doggy_amount} DOGGY\n` +
+                `👤 ${order.user_wallet}\n` +
+                `📝 [Ver TX](https://explorer.solana.com/tx/${sig})`, { parse_mode: "Markdown" });
+        }
+        else {
+            bot.sendMessage(chatId, `❌ Error enviando DOGGY. Verifica que el distributor tenga balance y la ATA existe.`);
+        }
+    }
+    if (data.startsWith("x:")) {
+        const partialId = data.slice(2);
+        const { data: orders } = await supabase.from("doggy_orders").select("*").ilike("id", `${partialId}%`).limit(1);
+        if (!orders?.length)
+            return bot.sendMessage(chatId, "❌ Orden no encontrada.");
+        await supabase.from("doggy_orders").update({ status: "cancelled" }).eq("id", orders[0].id);
+        bot.sendMessage(chatId, "❌ Orden cancelada.");
+    }
+});
+// === SUPABASE REALTIME ===
+async function setupRealtime() {
+    supabase
+        .channel("doggy-orders-changes")
+        .on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "doggy_orders",
+    }, async (payload) => {
+        const order = payload.new;
+        if (!order)
+            return;
+        if (payload.eventType === "INSERT" && order.status === "pending") {
+            // New order created
+            bot.sendMessage(ADMIN_CHAT_ID, `🆕 *Nueva orden DOGGY*\n\n` +
+                `💰 MXN: $${order.mxn_amount}\n` +
+                `🐕 DOGGY: ${order.doggy_amount}\n` +
+                `💵 Monto SPEI: $${order.exact_amount?.toFixed(2)}\n` +
+                `👤 Wallet: ${order.user_wallet}\n` +
+                `🆔 ${order.id}`, { parse_mode: "Markdown" });
+        }
+        if (payload.eventType === "UPDATE" && order.status === "payment_reported") {
+            // User reported payment
+            bot.sendMessage(ADMIN_CHAT_ID, `💳 *Pago reportado*\n\n` +
+                `💰 $${order.mxn_amount} MXN → ${order.doggy_amount} DOGGY\n` +
+                `💵 Monto SPEI: $${order.exact_amount?.toFixed(2)}\n` +
+                `👤 ${order.user_wallet}\n\n` +
+                `¿El pago SPEI llegó?`, {
+                parse_mode: "Markdown",
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            { text: "✅ Sí, llegó", callback_data: `c:${order.id.slice(0, 8)}` },
+                            { text: "❌ No", callback_data: `x:${order.id.slice(0, 8)}` },
+                        ],
+                    ],
+                },
+            });
+        }
+    })
+        .subscribe();
+    console.log("✅ Supabase realtime connected, listening to doggy_orders");
+}
+// === HTTP ENDPOINT (backup for direct webhooks) ===
+const app = (0, express_1.default)();
+app.use(express_1.default.json());
+app.post("/webhook", async (req, res) => {
+    const { type, orderId } = req.body;
+    if (!type || !orderId)
+        return res.status(400).json({ error: "Missing fields" });
+    const { data: order } = await supabase.from("doggy_orders").select("*").eq("id", orderId).single();
+    if (!order)
+        return res.status(404).json({ error: "Not found" });
+    if (type === "order_created") {
+        bot.sendMessage(ADMIN_CHAT_ID, `🆕 *Nueva orden DOGGY*\n\n💰 $${order.mxn_amount} MXN → ${order.doggy_amount} DOGGY\n👤 ${order.user_wallet}`, { parse_mode: "Markdown" });
+    }
+    else if (type === "payment_reported") {
+        bot.sendMessage(ADMIN_CHAT_ID, `💳 *Pago reportado* — $${order.mxn_amount} MXN\n¿Llegó el SPEI?`, {
+            parse_mode: "Markdown",
+            reply_markup: {
+                inline_keyboard: [
+                    [
+                        { text: "✅ Sí, llegó", callback_data: JSON.stringify({ action: "confirm_payment", orderId: order.id }) },
+                        { text: "❌ No", callback_data: JSON.stringify({ action: "cancel_payment", orderId: order.id }) },
+                    ],
+                ],
+            },
+        });
+    }
+    res.json({ ok: true });
+});
+// === START ===
+setupRealtime();
+app.listen(BOT_PORT, () => console.log(`🤖 Bot HTTP listening on port ${BOT_PORT}`));
+console.log("🐕 DOGGY Telegram Bot started!");
