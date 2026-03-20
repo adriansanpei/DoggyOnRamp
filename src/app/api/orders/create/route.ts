@@ -67,23 +67,6 @@ export async function POST(req: NextRequest) {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Find existing pending orders with same base amount to avoid duplicate exact amounts
-    const baseAmount = Math.floor(mxnAmount * 1000) / 1000;
-    const { data: pendingOrders } = await supabase
-      .from("doggy_orders")
-      .select("exact_amount")
-      .eq("status", "pending")
-      .gte("exact_amount", baseAmount)
-      .lt("exact_amount", baseAmount + 1);
-
-    // Generate unique exact amount (2 decimals for SPEI compatibility)
-    let exactAmount = baseAmount + 0.01;
-    const usedAmounts = new Set((pendingOrders || []).map((o: any) => Math.round(o.exact_amount * 100)));
-    while (usedAmounts.has(Math.round(exactAmount * 100)) && exactAmount < baseAmount + 0.99) {
-      exactAmount += 0.01;
-    }
-    exactAmount = Math.round(exactAmount * 100) / 100;
-
     const { data: order, error: dbError } = await supabase
       .from("doggy_orders")
       .insert({
@@ -93,7 +76,7 @@ export async function POST(req: NextRequest) {
         doggy_amount: doggyAmount,
         usdc_amount: usdcAmount,
         usdc_mxn_rate: usdcMxnRate,
-        exact_amount: exactAmount,
+        exact_amount: mxnAmount,
         status: "pending",
       })
       .select()
