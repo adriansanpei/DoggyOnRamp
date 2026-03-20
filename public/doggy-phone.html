@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comprar DOGGY</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: radial-gradient(ellipse at 60% 40%, #0a1a3a 0%, #030d1f 55%, #020810 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-family: 'Orbitron', sans-serif;
+  }
+
+  /* Ambient light blobs */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 10%; left: 55%;
+    width: 480px; height: 480px;
+    background: radial-gradient(circle, rgba(0,180,255,0.10) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: 10%; left: 25%;
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(80,0,200,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* ── SCENE ── */
+  .scene {
+    perspective: 1100px;
+    perspective-origin: 50% 45%;
+    position: relative;
+    width: 360px;
+    height: 600px;
+  }
+
+  /* ── PHONE WRAPPER (3D tilt) ── */
+  .phone-wrapper {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transform: rotateX(14deg) rotateY(-22deg) rotateZ(2deg);
+    transition: transform 0.6s ease;
+  }
+
+  /* ── PHONE BODY ── */
+  .phone {
+    position: absolute;
+    inset: 0;
+    border-radius: 44px;
+    background: linear-gradient(160deg, #0d1e3a 0%, #05101f 60%, #020c1a 100%);
+    border: 2.5px solid rgba(0,200,255,0.55);
+    box-shadow:
+      0 0 28px rgba(0,200,255,0.55),
+      0 0 70px rgba(0,180,255,0.28),
+      0 0 130px rgba(0,160,255,0.14),
+      inset 0 0 30px rgba(0,200,255,0.07),
+      0 30px 80px rgba(0,0,0,0.7);
+    transform-style: preserve-3d;
+    overflow: hidden;
+  }
+
+  /* Edge highlight shimmer */
+  .phone::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 44px;
+    background: linear-gradient(120deg,
+      rgba(0,220,255,0.18) 0%,
+      transparent 35%,
+      transparent 65%,
+      rgba(0,180,255,0.10) 100%);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* Notch */
+  .phone-notch {
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90px;
+    height: 22px;
+    background: #020c1a;
+    border-radius: 0 0 14px 14px;
+    z-index: 5;
+    border: 1.5px solid rgba(0,200,255,0.3);
+    border-top: none;
+  }
+
+  /* Screen content area */
+  .phone-screen {
+    position: absolute;
+    inset: 14px;
+    border-radius: 32px;
+    background: linear-gradient(175deg, #061224 0%, #030e1c 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 24px 36px;
+    z-index: 1;
+  }
+
+  /* Grid of currency cards INSIDE the phone (dimmer, background versions) */
+  .phone-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    width: 100%;
+    margin-bottom: 28px;
+    opacity: 0.45;
+  }
+
+  /* ── BUY BUTTON ── */
+  .buy-btn {
+    width: 220px;
+    height: 48px;
+    border-radius: 50px;
+    background: linear-gradient(90deg, #0075c9, #00b4ff, #0075c9);
+    background-size: 200% 100%;
+    border: none;
+    color: #fff;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    position: relative;
+    box-shadow:
+      0 0 18px rgba(0,180,255,0.8),
+      0 0 40px rgba(0,160,255,0.4),
+      0 4px 20px rgba(0,0,0,0.5);
+    animation: btnPulse 2.4s ease-in-out infinite, btnShimmer 3s linear infinite;
+    z-index: 3;
+  }
+  .buy-btn::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50px;
+    background: transparent;
+    border: 1.5px solid rgba(0,200,255,0.4);
+    border-radius: 50px;
+    pointer-events: none;
+  }
+  @keyframes btnPulse {
+    0%,100% { box-shadow: 0 0 18px rgba(0,180,255,0.8), 0 0 40px rgba(0,160,255,0.4), 0 4px 20px rgba(0,0,0,0.5); }
+    50%      { box-shadow: 0 0 28px rgba(0,200,255,1),   0 0 60px rgba(0,180,255,0.6), 0 4px 20px rgba(0,0,0,0.5); }
+  }
+  @keyframes btnShimmer {
+    0%   { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+  }
+
+  /* ── FLOATING CARDS (in front of phone) ── */
+  .cards-layer {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    pointer-events: auto;
+  }
+
+  .card {
+    position: absolute;
+    width: 110px;
+    height: 100px;
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    background: rgba(10, 20, 40, 0.55);
+    border: 1.5px solid;
+    transform-style: preserve-3d;
+    transform: rotateX(14deg) rotateY(-22deg) rotateZ(2deg);
+  }
+
+  .card-coin {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    font-weight: 900;
+    border: 2.5px solid;
+    position: relative;
+  }
+  .card-coin::after {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    border-radius: 50%;
+    opacity: 0.5;
+    filter: blur(6px);
+  }
+
+  .card-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    text-shadow: 0 0 12px currentColor;
+  }
+
+  /* MXN — white/silver */
+  .card-mxn {
+    left: -60px; top: 20px;
+    border-color: rgba(200,220,255,0.4);
+    box-shadow: 0 0 22px rgba(180,210,255,0.4), 0 0 50px rgba(180,210,255,0.15), inset 0 0 15px rgba(180,210,255,0.07);
+    color: #c8dcff;
+    translateZ: 80px;
+    transform: rotateX(14deg) rotateY(-22deg) rotateZ(2deg) translateZ(80px);
+    animation: floatMXN 3.4s ease-in-out infinite;
+  }
+  .card-mxn .card-coin {
+    background: radial-gradient(circle, #c0cfe8, #7a8faa);
+    border-color: #c8dcff;
+    color: #0a1428;
+  }
+  .card-mxn .card-coin::after { background: #c8dcff; }
+  .card-mxn .card-label { color: #d8e8ff; }
+
+  /* ARG — purple */
+  .card-arg {
+    right: -40px; top: 20px;
+    border-color: rgba(160,80,255,0.45);
+    box-shadow: 0 0 22px rgba(160,80,255,0.5), 0 0 55px rgba(140,60,255,0.2), inset 0 0 15px rgba(140,60,255,0.07);
+    color: #c07eff;
+    transform: rotateX(14deg) rotateY(-22deg) rotateZ(2deg) translateZ(75px);
+    animation: floatARG 3.8s ease-in-out infinite;
+  }
+  .card-arg .card-coin {
+    background: radial-gradient(circle, #9b4dcc, #5a1f8a);
+    border-color: #c07eff;
+    color: #f0d0ff;
+  }
+  .card-arg .card-coin::after { background: #c07eff; }
+  .card-arg .card-label { color: #d090ff; }
+
+  /* COP — gold */
+  .card-cop {
+    left: -70px; top: 230px;
+    border-color: rgba(255,180,0,0.45);
+    box-shadow: 0 0 22px rgba(255,190,0,0.55), 0 0 55px rgba(255,160,0,0.2), inset 0 0 15px rgba(255,160,0,0.07);
+    color: #ffd060;
+    transform: rotateX(14deg) rotateY(-22deg) rotateZ(2deg) translateZ(85px);
+    animation: floatCOP 4.2s ease-in-out infinite;
+  }
+  .card-cop .card-coin {
+    background: radial-gradient(circle, #e8a800, #b07000);
+    border-color: #ffc800;
+    color: #3a2000;
+  }
+  .card-cop .card-coin::after { background: #ffd060; }
+  .card-cop .card-label { color: #ffd060; }
+
+  /* BRL — green */
+  .card-brl {
+    right: -30px; top: 240px;
+    border-color: rgba(0,230,100,0.4);
+    box-shadow: 0 0 22px rgba(0,230,100,0.5), 0 0 55px rgba(0,200,80,0.2), inset 0 0 15px rgba(0,200,80,0.07);
+    color: #40f090;
+    transform: rotateX(14deg) rotateY(-22deg) rotateZ(2deg) translateZ(78px);
+    animation: floatBRL 3.6s ease-in-out infinite;
+  }
+  .card-brl .card-coin {
+    background: radial-gradient(circle, #00a850, #005a2a);
+    border-color: #00e864;
+    color: #ccffe0;
+    font-size: 10px;
+  }
+  .card-brl .card-coin::after { background: #40f090; }
+  .card-brl .card-label { color: #40f090; }
+
+  /* Float animations — offset phases so they look organic */
+  @keyframes floatMXN {
+    0%,100% { transform: rotateX(14deg) rotateY(-22deg) rotateZ(2deg) translateZ(80px) translateY(0px); }
+    50%      { transform: rotateX(14deg) rotateY(-22deg) rotateZ(2deg) translateZ(80px) translateY(-12px); }
+  }
+  @keyframes floatARG {
+    0%,100% { transform: rotateX(14deg) rotateY(-22deg) rotateZ(2deg) translateZ(75px) translateY(-6px); }
+    50%      { transform: rotateX(14deg) rotateY(-22deg) rotateZ(2deg) translateZ(75px) translateY(8px); }
+  }
+  @keyframes floatCOP {
+    0%,100% { transform: rotateX(14deg) rotateY(-22deg) rotateZ(2deg) translateZ(85px) translateY(5px); }
+    50%      { transform: rotateX(14deg) rotateY(-22deg) rotateZ(2deg) translateZ(85px) translateY(-10px); }
+  }
+  @keyframes floatBRL {
+    0%,100% { transform: rotateX(14deg) rotateY(-22deg) rotateZ(2deg) translateZ(78px) translateY(-4px); }
+    50%      { transform: rotateX(14deg) rotateY(-22deg) rotateZ(2deg) translateZ(78px) translateY(10px); }
+  }
+
+  /* Decorative sparkle */
+  .sparkle {
+    position: fixed;
+    bottom: 12%; right: 8%;
+    width: 18px; height: 18px;
+    opacity: 0.7;
+    animation: sparkleAnim 3s ease-in-out infinite;
+  }
+  @keyframes sparkleAnim {
+    0%,100% { opacity: 0.4; transform: scale(0.9) rotate(0deg); }
+    50%      { opacity: 1;   transform: scale(1.2) rotate(45deg); }
+  }
+
+  /* Inner phone card previews */
+  .inner-card {
+    border-radius: 12px;
+    height: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border: 1px solid;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+  }
+  .inner-coin {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8px; font-weight: 900;
+    border: 1.5px solid;
+  }
+  .ic-mxn { border-color: rgba(200,220,255,0.3); color: #c8dcff; background: rgba(10,20,50,0.5); }
+  .ic-mxn .inner-coin { background: linear-gradient(135deg,#8090a8,#4a5570); border-color: #c8dcff; color: #fff; }
+  .ic-arg { border-color: rgba(150,70,255,0.3); color: #c07eff; background: rgba(15,10,35,0.5); }
+  .ic-arg .inner-coin { background: linear-gradient(135deg,#7030a8,#3a0f60); border-color: #c07eff; color: #fff; }
+  .ic-cop { border-color: rgba(255,180,0,0.3); color: #ffd060; background: rgba(20,15,5,0.5); }
+  .ic-cop .inner-coin { background: linear-gradient(135deg,#c08000,#7a5000); border-color: #ffc800; color: #fff; }
+  .ic-brl { border-color: rgba(0,200,80,0.3); color: #40f090; background: rgba(5,20,10,0.5); }
+  .ic-brl .inner-coin { background: linear-gradient(135deg,#007a38,#004020); border-color: #00e864; color: #afffcc; font-size: 6px; }
+
+  .doggy{
+position:absolute;
+top:45px;
+left:50%;
+transform:translateX(-50%);
+width:50px;
+opacity:0.9;
+z-index:0;
+pointer-events:none;
+filter: drop-shadow(0 20px 40px rgba(0,0,0,0.6));
+}
+
+/* EFECTO HOVER MONEDAS */
+.inner-card{
+transition: all 0.25s ease;
+cursor:pointer;
+}
+
+.inner-card:hover{
+transform:scale(1.08);
+box-shadow:
+0 0 15px rgba(0,200,255,0.5),
+0 0 35px rgba(0,200,255,0.3),
+inset 0 0 15px rgba(0,200,255,0.2);
+border-color: rgba(0,220,255,0.7);
+}
+
+.ic-mxn:hover{ box-shadow:0 0 20px rgba(200,220,255,0.8); }
+.ic-arg:hover{ box-shadow:0 0 20px rgba(160,80,255,0.8); }
+.ic-cop:hover{ box-shadow:0 0 20px rgba(255,180,0,0.8); }
+.ic-brl:hover{ box-shadow:0 0 20px rgba(0,230,100,0.8); }
+
+.card{
+transition: all 0.25s ease;
+cursor:pointer;
+}
+
+.card:hover{
+transform: rotateX(14deg) rotateY(-22deg) rotateZ(2deg) translateZ(110px) scale(1.08);
+filter: brightness(1.25);
+}
+
+.card{
+transition: all 0.25s ease;
+cursor:pointer;
+}
+
+.card:hover{
+transform: rotateX(14deg) rotateY(-22deg) rotateZ(2deg) translateZ(110px) scale(1.08);
+filter: brightness(1.25);
+}
+</style>
+</head>
+<body>
+
+<div class="scene">
+
+  <!-- Phone body -->
+  <div class="phone-wrapper">
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+
+        <img src="doggy.png" class="doggy">
+
+        <!-- Dim inner grid (background feel) -->
+        <div class="phone-grid">
+          <div class="inner-card ic-mxn">
+            <div class="inner-coin">$</div>
+            <span>MXN</span>
+          </div>
+          <div class="inner-card ic-arg">
+            <div class="inner-coin">$</div>
+            <span>ARG</span>
+          </div>
+          <div class="inner-card ic-cop">
+            <div class="inner-coin">$</div>
+            <span>COP</span>
+          </div>
+          <div class="inner-card ic-brl">
+            <div class="inner-coin">R$</div>
+            <span>BRL</span>
+          </div>
+        </div>
+
+        <button class="buy-btn">Comprar DOGGY</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating cards layer -->
+  <div class="cards-layer">
+
+    <!-- MXN -->
+    <div class="card card-mxn">
+      <div class="card-coin">$</div>
+      <div class="card-label">MXN</div>
+    </div>
+
+    <!-- ARG -->
+    <div class="card card-arg">
+      <div class="card-coin">$</div>
+      <div class="card-label">ARG</div>
+    </div>
+
+    <!-- COP -->
+    <div class="card card-cop">
+      <div class="card-coin">$</div>
+      <div class="card-label">COP</div>
+    </div>
+
+    <!-- BRL -->
+    <div class="card card-brl">
+      <div class="card-coin">R$</div>
+      <div class="card-label">BRL</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Decorative sparkle diamond -->
+<svg class="sparkle" viewBox="0 0 24 24" fill="none">
+  <path d="M12 2 L13.5 10.5 L22 12 L13.5 13.5 L12 22 L10.5 13.5 L2 12 L10.5 10.5 Z"
+    fill="white" opacity="0.85"/>
+</svg>
+
+<script>
+  // Subtle parallax on mouse move
+  const scene = document.querySelector('.scene');
+  const phoneWrapper = document.querySelector('.phone-wrapper');
+  const cards = document.querySelectorAll('.card');
+
+  let baseRX = 14, baseRY = -22, baseRZ = 2;
+
+  document.addEventListener('mousemove', (e) => {
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 2;
+    const dx = (e.clientX - cx) / cx; // -1 to 1
+    const dy = (e.clientY - cy) / cy;
+
+    const rX = baseRX - dy * 5;
+    const rY = baseRY + dx * 8;
+
+    phoneWrapper.style.transform = `rotateX(${rX}deg) rotateY(${rY}deg) rotateZ(${baseRZ}deg)`;
+
+    // Cards follow with slightly different parallax factor
+    cards.forEach((card, i) => {
+      const offsets = [80, 75, 85, 78];
+      const tz = offsets[i];
+      card.style.transform =
+        `rotateX(${rX}deg) rotateY(${rY}deg) rotateZ(${baseRZ}deg) translateZ(${tz}px)`;
+    });
+  });
+</script>
+</body>
+</html>
