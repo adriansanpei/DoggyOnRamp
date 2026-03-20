@@ -199,7 +199,7 @@ export function ComprasTab() {
       let active = true;
       function draw() {
         if (!active || !ctx) return;
-        ctx.clearRect(0, 0, canvas!.width, canvas!.height);
+        ctx.clearRect(0, 0, cvs.width, cvs.height);
         let allDead = true;
         for (const p of particles) {
           p.x += p.vx; p.y += p.vy; p.rotation += p.rotSpeed; p.vy += 0.04;
@@ -213,7 +213,7 @@ export function ComprasTab() {
           else { ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2); }
           ctx.restore();
         }
-        if (allDead) { active = false; ctx.clearRect(0, 0, canvas!.width, canvas!.height); return; }
+        if (allDead) { active = false; ctx.clearRect(0, 0, cvs.width, cvs.height); return; }
         requestAnimationFrame(draw);
       }
       requestAnimationFrame(draw);
