@@ -110,18 +110,20 @@ bot.onText(/\/stats/, async (msg) => {
 bot.on("callback_query", async (query) => {
   if (!query.data || !query.message) return;
   const chatId = query.message.chat.id;
-  const data = JSON.parse(query.data);
+  const data = query.data;
 
   await bot.answerCallbackQuery(query.id);
 
-  if (data.action === "confirm_payment") {
-    const orderId = data.orderId;
-    const { data: order } = await supabase.from("doggy_orders").select("*").eq("id", orderId).single();
-    if (!order) return bot.sendMessage(chatId, "❌ Orden no encontrada.");
+  if (data.startsWith("c:")) {
+    // Confirm payment - search by partial ID
+    const partialId = data.slice(2);
+    const { data: orders } = await supabase.from("doggy_orders").select("*").ilike("id", `${partialId}%`).eq("status", "payment_reported").limit(1);
+    if (!orders?.length) return bot.sendMessage(chatId, "❌ Orden no encontrada.");
+    const order = orders[0];
 
     bot.sendMessage(chatId, `⏳ Enviando ${order.doggy_amount} DOGGY a ${order.user_wallet?.slice(0, 8)}...`);
 
-    const sig = await sendDoggy(order.user_wallet, order.doggy_amount, orderId);
+    const sig = await sendDoggy(order.user_wallet, order.doggy_amount, order.id);
     if (sig) {
       bot.sendMessage(chatId,
         `✅ *DOGGY enviado!*\n\n` +
@@ -135,9 +137,11 @@ bot.on("callback_query", async (query) => {
     }
   }
 
-  if (data.action === "cancel_payment") {
-    const orderId = data.orderId;
-    await supabase.from("doggy_orders").update({ status: "cancelled" }).eq("id", orderId);
+  if (data.startsWith("x:")) {
+    const partialId = data.slice(2);
+    const { data: orders } = await supabase.from("doggy_orders").select("*").ilike("id", `${partialId}%`).limit(1);
+    if (!orders?.length) return bot.sendMessage(chatId, "❌ Orden no encontrada.");
+    await supabase.from("doggy_orders").update({ status: "cancelled" }).eq("id", orders[0].id);
     bot.sendMessage(chatId, "❌ Orden cancelada.");
   }
 });
@@ -180,8 +184,8 @@ async function setupRealtime() {
             reply_markup: {
               inline_keyboard: [
                 [
-                  { text: "✅ Sí, llegó", callback_data: JSON.stringify({ action: "confirm_payment", orderId: order.id }) },
-                  { text: "❌ No", callback_data: JSON.stringify({ action: "cancel_payment", orderId: order.id }) },
+                  { text: "✅ Sí, llegó", callback_data: `c:${order.id.slice(0,8)}` },
+                  { text: "❌ No", callback_data: `x:${order.id.slice(0,8)}` },
                 ],
               ],
             },

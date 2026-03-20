@@ -216,6 +216,7 @@ export function ComprasTab() {
             <button
               onClick={async () => {
                 try {
+                  setOrder({ ...order, status: "payment_reported" });
                   await fetch("/api/orders/report", {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
@@ -230,8 +231,8 @@ export function ComprasTab() {
             </button>
           )}
 
-          {/* Checking status */}
-          {checking && (
+          {/* Checking / Reported status */}
+          {(checking || order.status === "payment_reported") && (
             <p className="text-gray-400 text-xs text-center animate-pulse">⏳ Verificando pago — espera confirmación del administrador...</p>
           )}
 
