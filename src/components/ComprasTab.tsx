@@ -257,6 +257,14 @@ export function ComprasTab() {
           )}
 
           <p className="text-gray-600 text-[10px] text-center">Oprime el botón al transferir. No cierres esta página.</p>
+
+          {/* Cancel order button */}
+          <button
+            onClick={() => { setStep("input"); setOrder(null); setMxnAmount(""); }}
+            className="w-full py-2.5 rounded-xl font-medium text-sm transition-all"
+            style={{ background: "rgba(255,50,50,0.06)", color: "#ef4444", border: "1px solid rgba(255,50,50,0.1)" }}>
+            Cancelar orden
+          </button>
         </div>
       </div>
     );
