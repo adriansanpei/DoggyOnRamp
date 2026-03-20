@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Hide Particle Network branding */
+[data-testid="pcmaa-modal"] [class*="Footer"],
+[data-testid="pcmaa-modal"] a[href*="particle.network"],
+.pcm-container .pcm-footer {
+  display: none !important;
+}
+
+:root {
+  --primary: #FFD700;
+  --secondary: #0A0B1A;
+  --accent: #1E1F36;
+}
+
+body {
+  background: #050d1f;
+  color: white;
+  font-family: 'Inter', sans-serif;
+}
+
+@keyframes borderRotate {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
