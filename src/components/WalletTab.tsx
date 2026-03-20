@@ -277,7 +277,7 @@ export function WalletTab() {
                     </div>
                   </div>
                   <div className="col-span-2 text-right text-gray-400 text-xs">
-                    {loading ? "..." : asset.price ? `$${asset.price < 0.001 ? asset.price.toExponential(2) : asset.price.toFixed(asset.price < 1 ? 4 : 2)}` : "—"}
+                    {loading ? "..." : asset.price ? `$${asset.price < 0.01 ? asset.price.toFixed(6) : asset.price.toFixed(2)}` : "—"}
                   </div>
                   <div className="col-span-3 text-right text-white text-sm font-medium">
                     {loading ? "..." : asset.balance.toLocaleString(undefined, { maximumFractionDigits: asset.balance < 1 ? 6 : 4 })}
