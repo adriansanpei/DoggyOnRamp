@@ -31,6 +31,10 @@ export function WalletTab() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [transactions, setTransactions] = useState<TxRecord[]>([]);
   const [txLoading, setTxLoading] = useState(false);
+  const [txPage, setTxPage] = useState(1);
+  const [txHasMore, setTxHasMore] = useState(true);
+  const [txTotalLoaded, setTxTotalLoaded] = useState(0);
+  const TX_PER_PAGE = 8;
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const userInfo = getUserInfo();
@@ -87,13 +91,13 @@ export function WalletTab() {
   useEffect(() => { fetchBalances(); const i = setInterval(fetchBalances, 15000); return () => clearInterval(i); }, [fetchBalances]);
 
   // Fetch transactions
-  const fetchTransactions = useCallback(async () => {
+  const fetchTransactions = useCallback(async (page: number, append: boolean = false) => {
     if (!solAddress) return;
     if (activeSubTab !== "historial") return;
     setTxLoading(true);
     try {
       const connection = new Connection(SOLANA_RPC);
-      const sigs = await connection.getSignaturesForAddress(new PublicKey(solAddress), { limit: 8 });
+      const sigs = await connection.getSignaturesForAddress(new PublicKey(solAddress), { limit: 25, until: page > 1 ? transactions.length > 0 ? transactions[transactions.length - 1].signature : undefined : undefined });
 
       const txs = await Promise.all(sigs.map(async (sig) => {
         try {
@@ -110,85 +114,83 @@ export function WalletTab() {
           const sender = accountKeys.find((k: any) => k.toString() !== solAddress)?.toString() || "";
           const isFromDistributor = sender === DISTRIBUTOR_WALLET;
 
+          // Parse token balance changes
+          let doggyChange = 0;
+          let otherChange = 0;
+          let otherToken = "";
+
           if (details.meta?.preTokenBalances && details.meta?.postTokenBalances) {
             const pre = details.meta.preTokenBalances;
             const post = details.meta.postTokenBalances;
 
-            // Collect all significant token changes, prioritize DOGGY
-            let doggyChange = 0;
-            let otherChange = 0;
-            let otherToken = "";
-
             for (let i = 0; i < pre.length; i++) {
               const change = (Number(post[i]?.uiTokenAmount?.uiAmount || 0)) - (Number(pre[i]?.uiTokenAmount?.uiAmount || 0));
               if (Math.abs(change) > 0.001) {
-                if (post[i]?.mint === DOGGY_MINT) {
-                  doggyChange = change;
-                } else if (post[i]?.mint === "So11111111111111111111111111111111111111112") {
-                  // skip SOL in token balances
-                } else {
+                if (post[i]?.mint === DOGGY_MINT) doggyChange = change;
+                else if (post[i]?.mint !== "So11111111111111111111111111111111111111112") {
                   otherChange = change;
                   otherToken = post[i]?.mint === "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v" ? "USDC" : "Token";
                 }
               }
             }
-
-            // Also check post-only entries (new ATAs)
+            // New ATAs (post-only entries)
             for (let i = 0; i < post.length; i++) {
               if (!pre[i] || pre[i].uiTokenAmount?.uiAmount === null) {
                 const val = Number(post[i]?.uiTokenAmount?.uiAmount || 0);
-                if (val > 0.001) {
-                  if (post[i]?.mint === DOGGY_MINT) doggyChange = val;
-                }
+                if (val > 0.001 && post[i]?.mint === DOGGY_MINT) doggyChange = val;
               }
-            }
-
-            // Determine what to show (prioritize DOGGY)
-            if (Math.abs(doggyChange) > 0.001) {
-              token = "DOGGY";
-              amount = `${doggyChange > 0 ? "+" : ""}${doggyChange.toFixed(doggyChange < 1 ? 6 : 2)} DOGGY`;
-              isPositive = doggyChange > 0;
-              if (pre.length > 2) {
-                type = doggyChange > 0 ? (isFromDistributor ? "Compra" : "Depósito") : "Venta";
-              } else {
-                type = doggyChange > 0 ? (isFromDistributor ? "Compra" : "Depósito") : "Envío";
-              }
-            } else if (Math.abs(otherChange) > 0.001) {
-              token = otherToken;
-              amount = `${otherChange > 0 ? "+" : ""}${otherChange.toFixed(otherChange < 1 ? 6 : 2)} ${otherToken}`;
-              isPositive = otherChange > 0;
-              type = otherChange > 0 ? (isFromDistributor ? "Compra" : "Depósito") : "Envío";
             }
           }
 
-          if (!amount && details.meta) {
+          // Prioritize DOGGY > other tokens > SOL
+          if (Math.abs(doggyChange) > 0.001) {
+            amount = `${doggyChange > 0 ? "+" : ""}${doggyChange.toFixed(doggyChange < 1 ? 6 : 2)} DOGGY`;
+            isPositive = doggyChange > 0;
+            type = doggyChange > 0 ? (isFromDistributor ? "Compra" : "Depósito") : "Envío";
+          } else if (Math.abs(otherChange) > 0.001) {
+            amount = `${otherChange > 0 ? "+" : ""}${otherChange.toFixed(otherChange < 1 ? 6 : 2)} ${otherToken}`;
+            isPositive = otherChange > 0;
+            type = otherChange > 0 ? "Depósito" : "Envío";
+          } else if (details.meta) {
             const preBal = (details.meta.preBalances[0] || 0) / 1e9;
             const postBal = (details.meta.postBalances[0] || 0) / 1e9;
             const change = postBal - preBal;
+            // Only show SOL if significant (>0.001, not just fees)
             if (Math.abs(change) > 0.001) {
               amount = `${change > 0 ? "+" : ""}${change.toFixed(4)} SOL`;
               isPositive = change > 0;
               type = change > 0 ? "Depósito" : "Envío";
+            } else {
+              return null; // Skip dust (tx fees only)
             }
           }
+
+          if (!amount) return null;
 
           return {
             signature: sig.signature,
             timestamp: date,
             type,
-            amount: amount || "—",
+            amount,
             status: sig.confirmationStatus === "finalized" ? "Completado" : sig.confirmationStatus === "confirmed" ? "Confirmado" : "Pendiente",
             token: token || undefined,
           } as TxRecord;
         } catch { return null; }
       }));
 
-      setTransactions(txs.filter((t): t is TxRecord => t !== null));
+      const filtered = txs.filter((t): t is TxRecord => t !== null);
+      if (append) {
+        setTransactions(prev => [...prev, ...filtered]);
+      } else {
+        setTransactions(filtered);
+      }
+      setTxTotalLoaded(prev => append ? prev + filtered.length : filtered.length);
+      setTxHasMore(sigs.length >= 25);
     } catch (err) { console.error("Tx fetch error:", err); }
     finally { setTxLoading(false); }
   }, [solAddress, activeSubTab]);
 
-  useEffect(() => { fetchTransactions(); }, [fetchTransactions]);
+  useEffect(() => { setTxPage(1); fetchTransactions(1, false); }, [fetchTransactions]);
 
   // Draw PnL chart
   useEffect(() => {
@@ -346,7 +348,7 @@ export function WalletTab() {
               <div className="col-span-4 text-right">Monto</div>
               <div className="col-span-3 text-right">Estado</div>
             </div>
-            {txLoading ? (
+            {txLoading && transactions.length === 0 ? (
               <div className="py-10 text-center text-gray-500 text-sm animate-pulse">Cargando...</div>
             ) : transactions.length === 0 ? (
               <div className="py-10 text-center">
@@ -354,21 +356,55 @@ export function WalletTab() {
                 <p className="text-gray-500 text-sm">No hay transacciones todavía</p>
               </div>
             ) : (
-              transactions.map((tx) => (
-                <div key={tx.signature} className="grid grid-cols-12 gap-2 px-4 py-3 items-center text-xs" style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
-                  <div className="col-span-3 text-gray-400">{tx.timestamp}</div>
-                  <div className="col-span-2 text-gray-300">{tx.type}</div>
-                  <div className="col-span-4 text-right font-medium" style={{ color: tx.amount.startsWith("+") ? "#00C896" : "#FF6B6B" }}>
-                    {tx.amount}
+              <>
+                {transactions.slice(0, TX_PER_PAGE * txPage).map((tx) => (
+                  <div key={tx.signature} className="grid grid-cols-12 gap-2 px-4 py-3 items-center text-xs" style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
+                    <div className="col-span-3 text-gray-400">{tx.timestamp}</div>
+                    <div className="col-span-2 text-gray-300">{tx.type}</div>
+                    <div className="col-span-4 text-right font-medium" style={{ color: tx.amount.startsWith("+") ? "#00C896" : "#FF6B6B" }}>
+                      {tx.amount}
+                    </div>
+                    <div className="col-span-3 text-right">
+                      <a href={`https://explorer.solana.com/tx/${tx.signature}`} target="_blank" rel="noopener noreferrer"
+                        className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: "rgba(0,200,150,0.1)", color: "#00C896" }}>
+                        {tx.status}
+                      </a>
+                    </div>
                   </div>
-                  <div className="col-span-3 text-right">
-                    <a href={`https://explorer.solana.com/tx/${tx.signature}`} target="_blank" rel="noopener noreferrer"
-                      className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: "rgba(0,200,150,0.1)", color: "#00C896" }}>
-                      {tx.status}
-                    </a>
+                ))}
+                {/* Pagination */}
+                <div className="flex items-center justify-between px-4 py-3" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+                  <span className="text-[10px] text-gray-500">
+                    {Math.min(TX_PER_PAGE * txPage, transactions.length)} de {transactions.length} txns
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setTxPage(p => Math.max(1, p - 1))}
+                      disabled={txPage === 1}
+                      className="text-[10px] px-3 py-1 rounded-lg disabled:opacity-30"
+                      style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.7)" }}>
+                      ← Anterior
+                    </button>
+                    {(TX_PER_PAGE * txPage) >= transactions.length && txHasMore ? (
+                      <button
+                        onClick={() => { fetchTransactions(txPage + 1, true); setTxPage(p => p + 1); }}
+                        disabled={txLoading}
+                        className="text-[10px] px-3 py-1 rounded-lg disabled:opacity-30"
+                        style={{ background: "rgba(255,215,0,0.15)", color: "#FFD700" }}>
+                        {txLoading ? "Cargando..." : "Cargar más →"}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setTxPage(p => p + 1)}
+                        disabled={(TX_PER_PAGE * txPage) >= transactions.length}
+                        className="text-[10px] px-3 py-1 rounded-lg disabled:opacity-30"
+                        style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.7)" }}>
+                        Siguiente →
+                      </button>
+                    )}
                   </div>
                 </div>
-              ))
+              </>
             )}
           </div>
         )}
