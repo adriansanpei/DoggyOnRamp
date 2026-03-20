@@ -119,10 +119,16 @@ export default function AppPage() {
   // Update sidebar name when Particle is ready
   useEffect(() => {
     if (!isConnected) return;
-    try {
-      const info = getUserInfo();
-      if (info?.name) setSidebarName(info.name);
-    } catch {}
+    let attempts = 0;
+    const tryGetName = () => {
+      attempts++;
+      try {
+        const info = getUserInfo();
+        if (info?.name) { setSidebarName(info.name); return; }
+      } catch {}
+      if (attempts < 5) setTimeout(tryGetName, 500);
+    };
+    tryGetName();
   }, [isConnected]);
 
   let userInfo: any = null;
