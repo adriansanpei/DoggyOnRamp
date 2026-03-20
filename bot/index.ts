@@ -9,7 +9,9 @@ import {
 } from "@solana/web3.js";
 import {
   getAssociatedTokenAddress,
+  getAccount,
   createTransferInstruction,
+  createAssociatedTokenAccountInstruction,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import bs58 from "bs58";
@@ -41,12 +43,25 @@ async function sendDoggy(buyerWallet: string, doggyAmount: number, orderId: stri
     const fromAta = await getAssociatedTokenAddress(mintPk, distributorKeypair.publicKey);
     const toAta = await getAssociatedTokenAddress(mintPk, buyerPk);
 
-    // Create ATA for buyer if needed
-    const { Transaction: SolTransaction } = await import("@solana/web3.js");
-
     const tx = new Transaction();
+
+    // Create ATA for buyer if it doesn't exist
+    try {
+      await getAccount(connection, toAta);
+    } catch {
+      tx.add(
+        createAssociatedTokenAccountInstruction(
+          distributorKeypair.publicKey,
+          toAta,
+          buyerPk,
+          mintPk,
+          TOKEN_PROGRAM_ID
+        )
+      );
+    }
+
     tx.add(
-      createTransferInstruction(fromAta, toAta, distributorKeypair.publicKey, Math.floor(doggyAmount), [], TOKEN_PROGRAM_ID)
+      createTransferInstruction(fromAta, toAta, distributorKeypair.publicKey, Math.floor(doggyAmount * 1e6), [], TOKEN_PROGRAM_ID)
     );
 
     const sig = await connection.sendTransaction(tx, [distributorKeypair]);
