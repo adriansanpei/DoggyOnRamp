@@ -6,6 +6,7 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { getAssociatedTokenAddress, getAccount } from "@solana/spl-token";
 
 const DOGGY_MINT = "BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump";
+const DISTRIBUTOR_WALLET = "9bpCT7GdeLekt2tzjjq34NRr7g8ALbxDhE2kSCYTqy71";
 const SOLANA_RPC = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || "https://api.mainnet-beta.solana.com";
 
 interface TxRecord {
@@ -104,6 +105,11 @@ export function WalletTab() {
           let token = "";
           let isPositive = false;
 
+          // Determine sender (first account key that's not our wallet)
+          const accountKeys = details.transaction?.message?.staticAccountKeys || [];
+          const sender = accountKeys.find((k: any) => k.toString() !== solAddress)?.toString() || "";
+          const isFromDistributor = sender === DISTRIBUTOR_WALLET;
+
           if (details.meta?.preTokenBalances && details.meta?.postTokenBalances) {
             const pre = details.meta.preTokenBalances;
             const post = details.meta.postTokenBalances;
@@ -143,15 +149,15 @@ export function WalletTab() {
               amount = `${doggyChange > 0 ? "+" : ""}${doggyChange.toFixed(doggyChange < 1 ? 6 : 2)} DOGGY`;
               isPositive = doggyChange > 0;
               if (pre.length > 2) {
-                type = doggyChange > 0 ? "Compra" : "Venta";
+                type = doggyChange > 0 ? (isFromDistributor ? "Compra" : "Depósito") : "Venta";
               } else {
-                type = doggyChange > 0 ? "Compra" : "Envío";
+                type = doggyChange > 0 ? (isFromDistributor ? "Compra" : "Depósito") : "Envío";
               }
             } else if (Math.abs(otherChange) > 0.001) {
               token = otherToken;
               amount = `${otherChange > 0 ? "+" : ""}${otherChange.toFixed(otherChange < 1 ? 6 : 2)} ${otherToken}`;
               isPositive = otherChange > 0;
-              type = otherChange > 0 ? "Compra" : "Envío";
+              type = otherChange > 0 ? (isFromDistributor ? "Compra" : "Depósito") : "Envío";
             }
           }
 
