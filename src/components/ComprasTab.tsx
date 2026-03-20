@@ -180,7 +180,7 @@ export function ComprasTab() {
     setTimeout(() => {
       const cvs = document.getElementById("doggy-confetti") as HTMLCanvasElement | null;
       if (!cvs) return;
-      const ctx = canvas.getContext("2d");
+      const ctx = cvs.getContext("2d");
       cvs.width = window.innerWidth;
       cvs.height = window.innerHeight;
       const colors = ["#f59e0b", "#fbbf24", "#ffffff", "#fde68a", "#d97706"];
