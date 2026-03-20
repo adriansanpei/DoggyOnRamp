@@ -178,14 +178,14 @@ export function ComprasTab() {
 
     // Confetti
     setTimeout(() => {
-      const canvas = document.getElementById("doggy-confetti") as HTMLCanvasElement | null;
-      if (!canvas) return;
+      const cvs = document.getElementById("doggy-confetti") as HTMLCanvasElement | null;
+      if (!cvs) return;
       const ctx = canvas.getContext("2d");
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      cvs.width = window.innerWidth;
+      cvs.height = window.innerHeight;
       const colors = ["#f59e0b", "#fbbf24", "#ffffff", "#fde68a", "#d97706"];
       const particles = Array.from({ length: 80 }, () => ({
-        x: Math.random() * canvas.width,
+        x: Math.random() * cvs.width,
         y: -20 - Math.random() * 200,
         size: 4 + Math.random() * 8,
         color: colors[Math.floor(Math.random() * colors.length)],
@@ -199,21 +199,21 @@ export function ComprasTab() {
       let active = true;
       function draw() {
         if (!active || !ctx) return;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvas!.width, canvas!.height);
         let allDead = true;
         for (const p of particles) {
           p.x += p.vx; p.y += p.vy; p.rotation += p.rotSpeed; p.vy += 0.04;
-          if (p.y < canvas.height + 20) allDead = false;
+          if (p.y < cvs.height + 20) allDead = false;
           ctx.save();
           ctx.translate(p.x, p.y);
           ctx.rotate(p.rotation * Math.PI / 180);
-          ctx.globalAlpha = p.opacity * Math.min(1, (canvas.height - p.y + 60) / 100);
+          ctx.globalAlpha = p.opacity * Math.min(1, (cvs.height - p.y + 60) / 100);
           ctx.fillStyle = p.color;
           if (p.shape === "circle") { ctx.beginPath(); ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2); ctx.fill(); }
           else { ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2); }
           ctx.restore();
         }
-        if (allDead) { active = false; ctx.clearRect(0, 0, canvas.width, canvas.height); return; }
+        if (allDead) { active = false; ctx.clearRect(0, 0, canvas!.width, canvas!.height); return; }
         requestAnimationFrame(draw);
       }
       requestAnimationFrame(draw);
