@@ -123,10 +123,11 @@ bot.on("callback_query", async (query) => {
         if (!orders?.length)
             return bot.sendMessage(chatId, "❌ Orden no encontrada.");
         const order = orders[0];
-        bot.sendMessage(chatId, `⏳ Enviando ${order.doggy_amount} DOGGY a ${order.user_wallet?.slice(0, 8)}...`);
+        const shortId = order.id.slice(-6).toUpperCase();
+        bot.sendMessage(chatId, `⏳ Enviando ${order.doggy_amount} DOGGY a ${order.user_wallet?.slice(0, 8)}... [${shortId}]`);
         const sig = await sendDoggy(order.user_wallet, order.doggy_amount, order.id);
         if (sig) {
-            bot.sendMessage(chatId, `✅ *DOGGY enviado!*\n\n` +
+            bot.sendMessage(chatId, `✅ *DOGGY enviado!* [${shortId}]\n\n` +
                 `🐕 ${order.doggy_amount} DOGGY\n` +
                 `👤 ${order.user_wallet}\n` +
                 `📝 [Ver TX](https://explorer.solana.com/tx/${sig})`, { parse_mode: "Markdown" });
@@ -141,7 +142,7 @@ bot.on("callback_query", async (query) => {
         if (!orders?.length)
             return bot.sendMessage(chatId, "❌ Orden no encontrada.");
         await supabase.from("doggy_orders").update({ status: "cancelled" }).eq("id", orders[0].id);
-        bot.sendMessage(chatId, "❌ Orden cancelada.");
+        bot.sendMessage(chatId, `❌ Orden cancelada. [${orders[0].id.slice(-6).toUpperCase()}]`);
     }
 });
 // === SUPABASE REALTIME ===
@@ -157,17 +158,16 @@ async function setupRealtime() {
         if (!order)
             return;
         if (payload.eventType === "INSERT" && order.status === "pending") {
-            // New order created
-            bot.sendMessage(ADMIN_CHAT_ID, `🆕 *Nueva orden DOGGY*\n\n` +
+            const shortId = order.id.slice(-6).toUpperCase();
+            bot.sendMessage(ADMIN_CHAT_ID, `🆕 *Nueva orden DOGGY* [${shortId}]\n\n` +
                 `💰 MXN: $${order.mxn_amount}\n` +
                 `🐕 DOGGY: ${order.doggy_amount}\n` +
                 `💵 Monto SPEI: $${order.exact_amount?.toFixed(2)}\n` +
-                `👤 Wallet: ${order.user_wallet}\n` +
-                `🆔 ${order.id}`, { parse_mode: "Markdown" });
+                `👤 Wallet: ${order.user_wallet}`, { parse_mode: "Markdown" });
         }
         if (payload.eventType === "UPDATE" && order.status === "payment_reported") {
-            // User reported payment
-            bot.sendMessage(ADMIN_CHAT_ID, `💳 *Pago reportado*\n\n` +
+            const shortId = order.id.slice(-6).toUpperCase();
+            bot.sendMessage(ADMIN_CHAT_ID, `💳 *Pago reportado* [${shortId}]\n\n` +
                 `💰 $${order.mxn_amount} MXN → ${order.doggy_amount} DOGGY\n` +
                 `💵 Monto SPEI: $${order.exact_amount?.toFixed(2)}\n` +
                 `👤 ${order.user_wallet}\n\n` +

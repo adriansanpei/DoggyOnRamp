@@ -27,13 +27,36 @@ export function ComprasTab() {
   const [timeLeft, setTimeLeft] = useState(0);
   const [checking, setChecking] = useState(false);
 
+  // History state
+  const [history, setHistory] = useState<any[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+
+  // Load wallet from localStorage, then Particle
   useEffect(() => {
+    const saved = localStorage.getItem("doggy_wallet");
+    if (saved) setUserWallet(saved);
     try {
       const userInfo = getUserInfo();
       const solWallet = userInfo?.wallets?.find((w: any) => w.chain_name.toLowerCase().includes("solana"));
-      if (solWallet) setUserWallet(solWallet.public_address || "");
+      if (solWallet) {
+        const addr = solWallet.public_address || "";
+        setUserWallet(addr);
+        localStorage.setItem("doggy_wallet", addr);
+      }
     } catch {}
   }, [getUserInfo]);
+
+  // Fetch order history
+  const fetchHistory = useCallback(async () => {
+    if (!userWallet) return;
+    try {
+      const res = await fetch(`/api/orders/history?wallet=${userWallet}`);
+      const data = await res.json();
+      if (data.orders) setHistory(data.orders);
+    } catch {}
+  }, [userWallet]);
+
+  useEffect(() => { fetchHistory(); }, [fetchHistory]);
 
   // Fetch USDC/MXN rate
   useEffect(() => {
@@ -124,6 +147,7 @@ export function ComprasTab() {
       if (!res.ok) throw new Error(data.error || "Error creando orden");
       setOrder(data);
       setStep("payment");
+      fetchHistory();
     } catch (err: any) {
       setError(err.message);
     }
@@ -332,6 +356,41 @@ export function ComprasTab() {
       </div>
 
       <p className="text-center text-gray-600 text-[10px] mt-3">Pago directo por SPEI · Sin comisiones extras</p>
+
+      {/* History toggle */}
+      {history.length > 0 && (
+        <div className="mt-4 max-w-md mx-auto">
+          <button onClick={() => setShowHistory(!showHistory)} className="w-full text-center text-gray-500 text-xs py-2 hover:text-gray-300 transition-colors">
+            {showHistory ? "▾ Ocultar historial" : `▸ Ver historial (${history.length} órdenes)`}
+          </button>
+          {showHistory && (
+            <div className="space-y-2 mt-2">
+              {history.map((o: any) => (
+                <div key={o.id} className="rounded-xl p-3 flex items-center justify-between" style={{ background: "#13141f", border: "1px solid rgba(255,255,255,0.04)" }}>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                        o.status === "completed" ? "bg-green-500/10 text-green-400" :
+                        o.status === "cancelled" ? "bg-red-500/10 text-red-400" :
+                        o.status === "payment_reported" ? "bg-yellow-500/10 text-yellow-400" :
+                        "bg-gray-500/10 text-gray-400"
+                      }`}>
+                        {o.status === "completed" ? "✅ Completada" : o.status === "cancelled" ? "❌ Cancelada" : o.status === "payment_reported" ? "⏳ Verificando" : "⏳ Pendiente"}
+                      </span>
+                      <span className="text-gray-600 text-[10px]">#{o.id.slice(-6).toUpperCase()}</span>
+                    </div>
+                    <p className="text-white text-xs mt-1">${o.mxn_amount} MXN → {Number(o.doggy_amount).toLocaleString()} DOGGY</p>
+                    <p className="text-gray-600 text-[10px]">{new Date(o.created_at).toLocaleDateString("es-MX", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</p>
+                  </div>
+                  {o.status === "completed" && o.solana_tx_signature && (
+                    <a href={`https://explorer.solana.com/tx/${o.solana_tx_signature}`} target="_blank" className="text-blue-400 text-[10px] ml-2 shrink-0">TX ↗</a>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
