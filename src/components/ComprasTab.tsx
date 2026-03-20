@@ -11,7 +11,7 @@ const CLABE = process.env.NEXT_PUBLIC_CLABE || "";
 const BENEFICIARIO = process.env.NEXT_PUBLIC_BENEFICIARIO || "DOGGY";
 const ORDER_EXPIRY_MINUTES = 10;
 
-export function ComprasTab() {
+export function ComprasTab({ onGoToWallet }: { onGoToWallet?: () => void }) {
   const { getUserInfo } = useParticleAuth();
   const [mxnAmount, setMxnAmount] = useState("");
   const [usdcMxn, setUsdcMxn] = useState<number | null>(null);
@@ -280,7 +280,7 @@ export function ComprasTab() {
             )}
 
             {/* CTA Button */}
-            <button onClick={() => { setStep("wallet" as any); setMxnAmount(""); setOrder(null); }}
+            <button onClick={() => { onGoToWallet?.(); setMxnAmount(""); setOrder(null); }}
               style={{
                 display: "block", width: "100%", padding: "14px 0",
                 background: "#f59e0b", color: "#080a10",
