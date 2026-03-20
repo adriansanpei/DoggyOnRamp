@@ -145,13 +145,13 @@ export function WalletTab() {
               if (pre.length > 2) {
                 type = doggyChange > 0 ? "Compra" : "Venta";
               } else {
-                type = doggyChange > 0 ? "Recepción" : "Envío";
+                type = doggyChange > 0 ? "Compra" : "Envío";
               }
             } else if (Math.abs(otherChange) > 0.001) {
               token = otherToken;
               amount = `${otherChange > 0 ? "+" : ""}${otherChange.toFixed(otherChange < 1 ? 6 : 2)} ${otherToken}`;
               isPositive = otherChange > 0;
-              type = otherChange > 0 ? "Recepción" : "Envío";
+              type = otherChange > 0 ? "Compra" : "Envío";
             }
           }
 
@@ -162,7 +162,7 @@ export function WalletTab() {
             if (Math.abs(change) > 0.001) {
               amount = `${change > 0 ? "+" : ""}${change.toFixed(4)} SOL`;
               isPositive = change > 0;
-              type = change < 0 ? "Envío" : "Recepción";
+              type = change < 0 ? "Envío" : "Compra";
             }
           }
 
