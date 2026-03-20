@@ -162,7 +162,7 @@ export function WalletTab() {
             if (Math.abs(change) > 0.001) {
               amount = `${change > 0 ? "+" : ""}${change.toFixed(4)} SOL`;
               isPositive = change > 0;
-              type = change < 0 ? "Envío" : "Compra";
+              type = change > 0 ? "Depósito" : "Envío";
             }
           }
 
