@@ -102,19 +102,56 @@ export function WalletTab() {
           let type = "Transferencia";
           let amount = "";
           let token = "";
+          let isPositive = false;
 
           if (details.meta?.preTokenBalances && details.meta?.postTokenBalances) {
             const pre = details.meta.preTokenBalances;
             const post = details.meta.postTokenBalances;
+
+            // Collect all significant token changes, prioritize DOGGY
+            let doggyChange = 0;
+            let otherChange = 0;
+            let otherToken = "";
+
             for (let i = 0; i < pre.length; i++) {
               const change = (Number(post[i]?.uiTokenAmount?.uiAmount || 0)) - (Number(pre[i]?.uiTokenAmount?.uiAmount || 0));
               if (Math.abs(change) > 0.001) {
-                const t = post[i]?.mint === DOGGY_MINT ? "DOGGY" : post[i]?.mint === "So11111111111111111111111111111111111111112" ? "SOL" : "Token";
-                token = t;
-                amount = `${change > 0 ? "+" : ""}${change.toFixed(change < 1 ? 6 : 2)} ${t}`;
-                if (pre.length > 1) type = "Swap";
-                else type = change < 0 ? "Envío" : "Recepción";
+                if (post[i]?.mint === DOGGY_MINT) {
+                  doggyChange = change;
+                } else if (post[i]?.mint === "So11111111111111111111111111111111111111112") {
+                  // skip SOL in token balances
+                } else {
+                  otherChange = change;
+                  otherToken = post[i]?.mint === "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v" ? "USDC" : "Token";
+                }
               }
+            }
+
+            // Also check post-only entries (new ATAs)
+            for (let i = 0; i < post.length; i++) {
+              if (!pre[i] || pre[i].uiTokenAmount?.uiAmount === null) {
+                const val = Number(post[i]?.uiTokenAmount?.uiAmount || 0);
+                if (val > 0.001) {
+                  if (post[i]?.mint === DOGGY_MINT) doggyChange = val;
+                }
+              }
+            }
+
+            // Determine what to show (prioritize DOGGY)
+            if (Math.abs(doggyChange) > 0.001) {
+              token = "DOGGY";
+              amount = `${doggyChange > 0 ? "+" : ""}${doggyChange.toFixed(doggyChange < 1 ? 6 : 2)} DOGGY`;
+              isPositive = doggyChange > 0;
+              if (pre.length > 2) {
+                type = doggyChange > 0 ? "Compra" : "Venta";
+              } else {
+                type = doggyChange > 0 ? "Recepción" : "Envío";
+              }
+            } else if (Math.abs(otherChange) > 0.001) {
+              token = otherToken;
+              amount = `${otherChange > 0 ? "+" : ""}${otherChange.toFixed(otherChange < 1 ? 6 : 2)} ${otherToken}`;
+              isPositive = otherChange > 0;
+              type = otherChange > 0 ? "Recepción" : "Envío";
             }
           }
 
@@ -124,6 +161,7 @@ export function WalletTab() {
             const change = postBal - preBal;
             if (Math.abs(change) > 0.001) {
               amount = `${change > 0 ? "+" : ""}${change.toFixed(4)} SOL`;
+              isPositive = change > 0;
               type = change < 0 ? "Envío" : "Recepción";
             }
           }
