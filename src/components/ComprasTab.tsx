@@ -211,12 +211,31 @@ export function ComprasTab() {
             </div>
           </div>
 
-          {/* Checking status */}
-          {checking && (
-            <p className="text-gray-500 text-xs text-center animate-pulse">Verificando pago...</p>
+          {/* Report payment button */}
+          {!checking && order && order.status === "pending" && (
+            <button
+              onClick={async () => {
+                try {
+                  await fetch("/api/orders/report", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ orderId: order.id }),
+                  });
+                  setChecking(true);
+                } catch {}
+              }}
+              className="w-full py-3.5 rounded-xl font-semibold text-sm transition-all"
+              style={{ background: "rgba(0,200,83,0.15)", color: "#4CAF50", border: "1px solid rgba(0,200,83,0.2)" }}>
+              ✅ Ya realicé mi transferencia SPEI
+            </button>
           )}
 
-          <p className="text-gray-600 text-[10px] text-center">La verificación es automática. No cierres esta página.</p>
+          {/* Checking status */}
+          {checking && (
+            <p className="text-gray-400 text-xs text-center animate-pulse">⏳ Verificando pago — espera confirmación del administrador...</p>
+          )}
+
+          <p className="text-gray-600 text-[10px] text-center">Oprime el botón al transferir. No cierres esta página.</p>
         </div>
       </div>
     );
