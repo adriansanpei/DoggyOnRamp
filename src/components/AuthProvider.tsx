@@ -46,7 +46,7 @@ const config = createConfig({
   },
   walletConnectors: [
     authWalletConnectors({
-      authTypes: ["google", "email", "phone", "apple", "twitter", "discord"],
+      authTypes: ["google", "email", "apple", "twitter", "discord"],
       fiatCoin: "USD",
       promptSettingConfig: {
         promptMasterPasswordSettingWhenLogin: 0,
