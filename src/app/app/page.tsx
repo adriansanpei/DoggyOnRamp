@@ -25,9 +25,11 @@ const tabs = [
 ];
 
 export default function AppPage() {
-  const [activeTab, setActiveTab] = useState("estadisticas");
+  const [activeTab, setActiveTab] = useState(() => localStorage.getItem("doggy_tab") || "wallet");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [usernameModal, setUsernameModal] = useState(false);
+
+  useEffect(() => { localStorage.setItem("doggy_tab", activeTab); }, [activeTab]);
   const [username, setUsername] = useState("");
   const [walletReady, setWalletReady] = useState(false);
   const { isConnected } = useAccount();
