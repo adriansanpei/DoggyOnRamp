@@ -117,7 +117,7 @@ bot.on("callback_query", async (query) => {
   if (data.startsWith("c:")) {
     // Confirm payment - search by partial ID
     const partialId = data.slice(2);
-    const { data: orders } = await supabase.from("doggy_orders").select("*").ilike("id", `${partialId}%`).eq("status", "payment_reported").limit(1);
+    const { data: orders } = await supabase.rpc("search_orders_by_id_prefix", { p_prefix: partialId });
     if (!orders?.length) return bot.sendMessage(chatId, "❌ Orden no encontrada.");
     const order = orders[0];
 
@@ -140,7 +140,7 @@ bot.on("callback_query", async (query) => {
 
   if (data.startsWith("x:")) {
     const partialId = data.slice(2);
-    const { data: orders } = await supabase.from("doggy_orders").select("*").ilike("id", `${partialId}%`).limit(1);
+    const { data: orders } = await supabase.rpc("search_orders_by_id_prefix", { p_prefix: partialId });
     if (!orders?.length) return bot.sendMessage(chatId, "❌ Orden no encontrada.");
     await supabase.from("doggy_orders").update({ status: "cancelled" }).eq("id", orders[0].id);
     bot.sendMessage(chatId, `❌ Orden cancelada. [${orders[0].id.slice(-6).toUpperCase()}]`);

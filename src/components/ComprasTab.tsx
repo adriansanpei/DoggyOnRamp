@@ -373,9 +373,10 @@ export function ComprasTab() {
                         o.status === "completed" ? "bg-green-500/10 text-green-400" :
                         o.status === "cancelled" ? "bg-red-500/10 text-red-400" :
                         o.status === "payment_reported" ? "bg-yellow-500/10 text-yellow-400" :
+                        (Date.now() - new Date(o.created_at).getTime() > 10 * 60 * 1000) ? "bg-red-500/10 text-red-400" :
                         "bg-gray-500/10 text-gray-400"
                       }`}>
-                        {o.status === "completed" ? "✅ Completada" : o.status === "cancelled" ? "❌ Cancelada" : o.status === "payment_reported" ? "⏳ Verificando" : "⏳ Pendiente"}
+                        {o.status === "completed" ? "✅ Completada" : o.status === "cancelled" ? "❌ Cancelada" : o.status === "payment_reported" ? "⏳ Verificando" : (Date.now() - new Date(o.created_at).getTime() > 10 * 60 * 1000) ? "⏰ Expirada" : "⏳ Pendiente"}
                       </span>
                       <span className="text-gray-600 text-[10px]">#{o.id.slice(-6).toUpperCase()}</span>
                     </div>
