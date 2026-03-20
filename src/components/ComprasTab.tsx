@@ -153,24 +153,167 @@ export function ComprasTab() {
 
   const formatClabe = (c: string) => c.replace(/(.{4})/g, "$1 ");
 
+  // === CONFETTI ===
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [countValue, setCountValue] = useState(0);
+
+  useEffect(() => {
+    if (step !== "success" || !order) return;
+    setShowConfetti(true);
+    const target = Math.floor(Number(order.doggy_amount));
+
+    // Count-up
+    const duration = 1400;
+    const startDelay = 1100;
+    const t0 = performance.now() + startDelay;
+    function easeOut(t: number) { return 1 - Math.pow(1 - t, 3); }
+    function tick() {
+      const elapsed = performance.now() - t0;
+      if (elapsed < 0) { requestAnimationFrame(tick); return; }
+      const progress = Math.min(elapsed / duration, 1);
+      setCountValue(Math.floor(easeOut(progress) * target));
+      if (progress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+
+    // Confetti
+    setTimeout(() => {
+      const canvas = document.getElementById("doggy-confetti") as HTMLCanvasElement | null;
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      const colors = ["#f59e0b", "#fbbf24", "#ffffff", "#fde68a", "#d97706"];
+      const particles = Array.from({ length: 80 }, () => ({
+        x: Math.random() * canvas.width,
+        y: -20 - Math.random() * 200,
+        size: 4 + Math.random() * 8,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        shape: Math.random() > 0.5 ? "circle" : "rect",
+        vx: (Math.random() - 0.5) * 3,
+        vy: 1.5 + Math.random() * 3,
+        rotation: Math.random() * 360,
+        rotSpeed: (Math.random() - 0.5) * 6,
+        opacity: 0.8 + Math.random() * 0.2,
+      }));
+      let active = true;
+      function draw() {
+        if (!active || !ctx) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let allDead = true;
+        for (const p of particles) {
+          p.x += p.vx; p.y += p.vy; p.rotation += p.rotSpeed; p.vy += 0.04;
+          if (p.y < canvas.height + 20) allDead = false;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rotation * Math.PI / 180);
+          ctx.globalAlpha = p.opacity * Math.min(1, (canvas.height - p.y + 60) / 100);
+          ctx.fillStyle = p.color;
+          if (p.shape === "circle") { ctx.beginPath(); ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2); ctx.fill(); }
+          else { ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2); }
+          ctx.restore();
+        }
+        if (allDead) { active = false; ctx.clearRect(0, 0, canvas.width, canvas.height); return; }
+        requestAnimationFrame(draw);
+      }
+      requestAnimationFrame(draw);
+      setTimeout(() => setShowConfetti(false), 4000);
+    }, 300);
+  }, [step, order]);
+
   // === SUCCESS SCREEN ===
   if (step === "success") {
+    const doggyNum = Math.floor(Number(order?.doggy_amount || 0));
     return (
-      <div className="w-full max-w-md mx-auto">
-        <div className="rounded-2xl p-8 text-center" style={{ background: "#13141f", border: "1px solid rgba(255,255,255,0.06)" }}>
-          <div className="text-5xl mb-4">🎉</div>
-          <h3 className="text-xl font-bold text-white mb-2">¡Pago recibido!</h3>
-          <p className="text-gray-400 text-sm mb-1">Tus DOGGY están en tu wallet.</p>
-          {order?.solana_tx_signature && (
-            <a href={`https://explorer.solana.com/tx/${order.solana_tx_signature}`} target="_blank" className="text-green-400 text-xs underline">
-              Ver transacción
-            </a>
-          )}
-          <button onClick={() => { setStep("input"); setMxnAmount(""); setOrder(null); }} className="mt-6 px-6 py-2.5 rounded-xl text-sm font-medium" style={{ background: "rgba(255,215,0,0.1)", color: "#FFD700" }}>
-            Nueva compra
-          </button>
+      <>
+        {/* Confetti Canvas */}
+        {showConfetti && <canvas id="doggy-confetti" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 99 }} />}
+
+        <div className="w-full max-w-md mx-auto relative" style={{ zIndex: 101 }}>
+          <div className="rounded-3xl p-10 text-center relative overflow-hidden"
+            style={{
+              background: "#131620",
+              border: "1px solid rgba(245,158,11,0.18)",
+              boxShadow: "0 0 0 1px rgba(245,158,11,0.08), 0 24px 60px rgba(0,0,0,0.6), 0 0 80px rgba(245,158,11,0.06)",
+            }}>
+
+            {/* Paw icon */}
+            <div style={{ fontSize: 64, marginBottom: 20, animation: "pawFloat 3s ease-in-out 1.2s infinite", filter: "drop-shadow(0 0 18px rgba(240,192,48,0.6)) drop-shadow(0 0 40px rgba(240,192,48,0.3))" }}>
+              🐾
+            </div>
+
+            {/* Headline */}
+            <h3 style={{
+              fontSize: 22, fontWeight: 800, color: "#f0c030", marginBottom: 10,
+              textShadow: "0 0 12px rgba(245,158,11,0.5), 0 0 32px rgba(245,158,11,0.2)",
+              fontFamily: "'Sora', sans-serif",
+            }}>
+              ¡Compra Exitosa!
+            </h3>
+
+            <p style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.75)", lineHeight: 1.5, marginBottom: 6 }}>
+              Pronto verás los DOGGYs reflejados<br />en tu panel de Wallet
+            </p>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", marginBottom: 24 }}>
+              {order?.solana_tx_signature ? "Tus DOGGYs ya están en camino 🚀" : "Estamos enviando tus DOGGYs… aguanta tantito"}
+            </p>
+
+            {/* Divider */}
+            <div style={{ width: 40, height: 2, background: "rgba(245,158,11,0.25)", borderRadius: 2, margin: "0 auto 20px" }} />
+
+            {/* Amount with count-up */}
+            <div style={{ marginBottom: 28 }}>
+              <span style={{
+                fontSize: 36, fontWeight: 800, color: "#f0c030", letterSpacing: -0.5,
+                textShadow: "0 0 12px rgba(245,158,11,0.5), 0 0 32px rgba(245,158,11,0.2)",
+                fontFamily: "'Sora', sans-serif",
+              }}>
+                +{countValue.toLocaleString("es-MX")} DOGGY
+              </span>
+            </div>
+
+            {/* TX link */}
+            {order?.solana_tx_signature && (
+              <a href={`https://explorer.solana.com/tx/${order.solana_tx_signature}`} target="_blank"
+                className="block text-xs mb-3" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "underline" }}>
+                Ver transacción en Solana Explorer
+              </a>
+            )}
+
+            {/* CTA Button */}
+            <button onClick={() => { setStep("wallet" as any); setMxnAmount(""); setOrder(null); }}
+              style={{
+                display: "block", width: "100%", padding: "14px 0",
+                background: "#f59e0b", color: "#080a10",
+                fontFamily: "'Sora', sans-serif", fontSize: 15, fontWeight: 700,
+                border: "none", borderRadius: 14, cursor: "pointer",
+                marginBottom: 14, transition: "all 0.2s",
+              }}
+              onMouseOver={(e) => { (e.target as HTMLElement).style.background = "#fbbf24"; (e.target as HTMLElement).style.transform = "translateY(-2px)"; }}
+              onMouseOut={(e) => { (e.target as HTMLElement).style.background = "#f59e0b"; (e.target as HTMLElement).style.transform = "translateY(0)"; }}>
+              Ver mi Wallet →
+            </button>
+
+            <button onClick={() => { setStep("input"); setMxnAmount(""); setOrder(null); }}
+              style={{
+                background: "none", border: "none", color: "rgba(255,255,255,0.3)",
+                fontSize: 13, cursor: "pointer", padding: "4px 12px",
+                transition: "color 0.2s",
+              }}
+              onMouseOver={(e) => { (e.target as HTMLElement).style.color = "rgba(255,255,255,0.6)"; }}
+              onMouseOut={(e) => { (e.target as HTMLElement).style.color = "rgba(255,255,255,0.3)"; }}>
+              Cerrar
+            </button>
+          </div>
         </div>
-      </div>
+
+        <style>{`
+          @keyframes pawFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+          }
+        `}</style>
+      </>
     );
   }
 
