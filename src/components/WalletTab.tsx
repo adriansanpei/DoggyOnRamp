@@ -106,7 +106,7 @@ export function WalletTab() {
           let isPositive = false;
 
           // Determine sender (first account key that's not our wallet)
-          const accountKeys = details.transaction?.message?.staticAccountKeys || [];
+          const accountKeys = (details.transaction?.message as any)?.staticAccountKeys || [];
           const sender = accountKeys.find((k: any) => k.toString() !== solAddress)?.toString() || "";
           const isFromDistributor = sender === DISTRIBUTOR_WALLET;
 
