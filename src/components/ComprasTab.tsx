@@ -127,7 +127,7 @@ export function ComprasTab() {
   }, [step, order]);
 
   const handleCreateOrder = async () => {
-    if (!mxnAmount || parseFloat(mxnAmount) < 10 || !doggyAmount || !userWallet) return;
+    if (!mxnAmount || parseFloat(mxnAmount) < 10 || !userWallet) return;
     setError("");
 
     try {
@@ -136,11 +136,7 @@ export function ComprasTab() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           mxnAmount: parseFloat(mxnAmount),
-          doggyAmount: parseFloat(doggyAmount?.replace(/,/g, "") || "0"),
-          usdcAmount,
-          usdcMxnRate: usdcMxn,
           userWallet,
-          particleUserId: "",
         }),
       });
       const data = await res.json();
@@ -230,7 +226,7 @@ export function ComprasTab() {
               <img src={DOGGY_LOGO} alt="" className="w-8 h-8 rounded-full object-cover" />
               <div className="flex-1">
                 <p className="text-gray-400 text-xs">Recibirás</p>
-                <p className="text-white text-xl font-bold">{doggyAmount} DOGGY</p>
+                <p className="text-white text-xl font-bold">{Number(order.doggy_amount).toLocaleString(undefined, { maximumFractionDigits: 2 })} DOGGY</p>
               </div>
             </div>
           </div>
@@ -344,14 +340,14 @@ export function ComprasTab() {
         )}
 
         <button onClick={handleCreateOrder}
-          disabled={!mxnAmount || parseFloat(mxnAmount) < 10 || !doggyAmount}
+          disabled={!mxnAmount || parseFloat(mxnAmount) < 10}
           className="w-full py-3.5 rounded-xl font-semibold text-sm transition-all disabled:opacity-25"
           style={{
-            background: mxnAmount && parseFloat(mxnAmount) >= 10 && doggyAmount ? "#009EE3" : "rgba(255,255,255,0.05)",
-            color: mxnAmount && parseFloat(mxnAmount) >= 10 && doggyAmount ? "white" : "rgba(255,255,255,0.3)",
-            boxShadow: mxnAmount && parseFloat(mxnAmount) >= 10 && doggyAmount ? "0 4px 20px rgba(0,158,227,0.25)" : "none",
+            background: mxnAmount && parseFloat(mxnAmount) >= 10 ? "#009EE3" : "rgba(255,255,255,0.05)",
+            color: mxnAmount && parseFloat(mxnAmount) >= 10 ? "white" : "rgba(255,255,255,0.3)",
+            boxShadow: mxnAmount && parseFloat(mxnAmount) >= 10 ? "0 4px 20px rgba(0,158,227,0.25)" : "none",
           }}>
-          {mxnAmount && parseFloat(mxnAmount) >= 10 && doggyAmount ? "Generar orden de pago" : "Ingresa un monto"}
+          {mxnAmount && parseFloat(mxnAmount) >= 10 ? "Generar orden de pago" : "Ingresa un monto"}
         </button>
       </div>
 
