@@ -239,7 +239,7 @@ export default function AppPage() {
           ) : activeTab === "vender" ? (
             <SwapTab />
           ) : activeTab === "compras" ? (
-            <ComprasTab />
+            <ComprasTab onGoToWallet={() => setActiveTab("wallet")} />
           ) : (
             <div className="text-center">
               <div className="text-6xl mb-4">🚧</div>
