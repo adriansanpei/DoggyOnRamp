@@ -148,7 +148,8 @@ export default function AppPage() {
   };
 
   const handleLogout = async () => {
-    window.location.href = "/";
+    try { await disconnectAsync(); } catch {}
+    setTimeout(() => { window.location.href = "/"; }, 200);
   };
 
   if (loggingOut) {
