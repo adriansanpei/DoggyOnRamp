@@ -147,12 +147,10 @@ export default function AppPage() {
   };
 
   const handleLogout = async () => {
-    try {
-      await disconnectAsync();
-      router.push("/");
-    } catch {
-      router.push("/");
-    }
+    router.push("/");
+    setTimeout(async () => {
+      try { await disconnectAsync(); } catch {}
+    }, 100);
   };
 
   return (
