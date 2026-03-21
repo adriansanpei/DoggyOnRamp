@@ -275,7 +275,6 @@ export function ReferidosTab() {
         )}
       </div>
       </div>
-      </div>
     </div>
   );
 }
