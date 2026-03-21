@@ -55,6 +55,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: "already referred" });
   }
 
+  // Check if user already has purchases (existing user - no referral)
+  const { data: pastOrders } = await supabase
+    .from("purchases")
+    .select("id")
+    .eq("buyer_wallet", referred_wallet)
+    .eq("status", "completed")
+    .limit(1);
+
+  if (pastOrders && pastOrders.length > 0) {
+    return NextResponse.json({ error: "existing user cannot be referred" }, { status: 400 });
+  }
+
   // Get referrer wallet from code
   const { data: referrer, error } = await supabase
     .from("referral_codes")

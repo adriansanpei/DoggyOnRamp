@@ -22,7 +22,7 @@ const tabs = [
   { id: "vender", label: "💸 Vender" },
   { id: "wallet", label: "👛 Wallet" },
   { id: "staking", label: "🥩 Staking" },
-  { id: "referidos", label: "👥 Referidos" },
+  { id: "referidos", label: "Referidos" },
 ];
 
 export default function AppPage() {
