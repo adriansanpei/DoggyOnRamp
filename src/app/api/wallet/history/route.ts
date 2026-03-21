@@ -54,19 +54,22 @@ export async function GET(req: Request) {
           const pre = tx.meta?.preTokenBalances ?? [];
           const post = tx.meta?.postTokenBalances ?? [];
           const DOGGY_MINT = "BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump";
+          const keys = tx.transaction.message.accountKeys;
 
+          // Find which accountKey index belongs to our wallet
+          const walletIdx = keys.findIndex((k: any) => {
+            const pk = typeof k === "string" ? k : k?.pubkey?.toString?.() || k?.toString?.() || "";
+            return pk === wallet;
+          });
+
+          // Get token amount for our wallet specifically (by accountIndex)
           const getAmount = (balances: any[], mint: string): number => {
-            const entry = balances.find((b: any) => b.mint === mint);
+            const entry = balances.find((b: any) => b.mint === mint && b.accountIndex === walletIdx);
             return entry?.uiTokenAmount?.uiAmount ?? 0;
           };
 
           const doggyDelta = getAmount(post, DOGGY_MINT) - getAmount(pre, DOGGY_MINT);
 
-          const keys = tx.transaction.message.accountKeys;
-          const walletIdx = keys.findIndex((k: any) => {
-            const pk = typeof k === "string" ? k : k?.pubkey?.toString?.() || k?.toString?.() || "";
-            return pk === wallet;
-          });
           let solDelta = 0;
           if (walletIdx >= 0) {
             const preBal = (tx.meta?.preBalances?.[walletIdx] ?? 0) / 1e9;
