@@ -53,17 +53,19 @@ export function ReferidosTab() {
 
       const refRes = await fetch("/api/referrals/list?wallet=" + addr);
       const refData = await refRes.json();
-      setReferrals(refData.referrals || []);
+      const allRef = refData.referrals || [];
+      // Only show referrals where user is the referrer
+      const myReferrals = allRef.filter((r: any) => r.referrer_wallet?.toLowerCase() === addr.toLowerCase());
+      setReferrals(myReferrals);
       // Check if this user was referred
-      const wasReferred = (refData.referrals || []).some((r: any) => r.referred_wallet?.toLowerCase() === addr.toLowerCase());
+      const wasReferred = allRef.some((r: any) => r.referred_wallet?.toLowerCase() === addr.toLowerCase());
       setIsReferred(wasReferred);
 
-      const allRef = refData.referrals || [];
       setStats({
-        total: allRef.length,
-        qualified: allRef.filter((r: any) => r.status === "qualified" || r.status === "paid").length,
-        paid: allRef.filter((r: any) => r.status === "paid").length,
-        doggyEarned: allRef.filter((r: any) => r.status === "paid").length * 2000,
+        total: myReferrals.length,
+        qualified: myReferrals.filter((r: any) => r.status === "qualified" || r.status === "paid").length,
+        paid: myReferrals.filter((r: any) => r.status === "paid").length,
+        doggyEarned: myReferrals.filter((r: any) => r.status === "paid").length * 2000,
       });
 
       // Register referral if came from a link
@@ -187,7 +189,9 @@ export function ReferidosTab() {
         </div>
       )}
 
-      {/* Hero Banner */}
+      {/* Hero Banner + Stats + List - only for referrers */}
+      {!isReferred ? (
+        <div>
       <div className="rounded-2xl p-6 text-center relative overflow-hidden" style={{ background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)" }}>
         <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ background: "radial-gradient(circle at 30% 50%, #FFD700, transparent 60%)" }} />
         <h2 className="text-xl font-bold mb-2" style={{ color: "#FFD700" }}>Gana DOGGY por invitar</h2>
@@ -271,6 +275,14 @@ export function ReferidosTab() {
           </div>
         )}
       </div>
+        </div>
+      ) : (
+        <div className="rounded-xl p-8 text-center" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+          <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
+            Fuiste referido por alguien. Compra $300+ MXN en DOGGY para calificar la recompensa.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
