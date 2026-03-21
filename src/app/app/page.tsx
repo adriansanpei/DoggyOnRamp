@@ -148,12 +148,7 @@ export default function AppPage() {
   };
 
   const handleLogout = async () => {
-    setLoggingOut(true);
-    router.push("/");
-    setTimeout(async () => {
-      try { await disconnectAsync(); } catch {}
-      setLoggingOut(false);
-    }, 100);
+    window.location.href = "/";
   };
 
   if (loggingOut) {
