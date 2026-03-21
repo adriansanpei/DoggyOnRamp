@@ -13,6 +13,9 @@ export function ReferidosTab() {
   const [stats, setStats] = useState({ total: 0, qualified: 0, paid: 0, doggyEarned: 0 });
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState<string | null>(null);
+  const [manualCode, setManualCode] = useState("");
+  const [isReferred, setIsReferred] = useState(false);
+  const [applyStatus, setApplyStatus] = useState("");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -51,6 +54,9 @@ export function ReferidosTab() {
       const refRes = await fetch("/api/referrals/list?wallet=" + addr);
       const refData = await refRes.json();
       setReferrals(refData.referrals || []);
+      // Check if this user was referred
+      const wasReferred = (refData.referrals || []).some((r: any) => r.referred_wallet?.toLowerCase() === addr.toLowerCase());
+      setIsReferred(wasReferred);
 
       const allRef = refData.referrals || [];
       setStats({
@@ -74,6 +80,28 @@ export function ReferidosTab() {
       console.error("Error loading referral data:", e);
     }
     setLoading(false);
+  };
+
+  const applyManualCode = async () => {
+    if (!manualCode.trim() || !wallet) return;
+    setApplyStatus("aplicando");
+    try {
+      const res = await fetch("/api/referrals/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ referrer_code: manualCode.trim().toUpperCase(), referred_wallet: wallet }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setApplyStatus("exito");
+        setIsReferred(true);
+        setManualCode("");
+        setTimeout(() => setApplyStatus(""), 3000);
+      } else {
+        setApplyStatus(data.error || "error");
+        setTimeout(() => setApplyStatus(""), 3000);
+      }
+    } catch { setApplyStatus("error"); setTimeout(() => setApplyStatus(""), 3000); }
   };
 
   const copyLink = () => {
@@ -138,6 +166,25 @@ export function ReferidosTab() {
 
   return (
     <div className="space-y-6 p-2">
+      {/* Manual referral code input */}
+      {!isReferred && (
+        <div className="rounded-xl p-4" style={{ background: "#1a1b2e", border: "1px solid rgba(255,215,0,0.15)" }}>
+          <p className="text-xs font-medium mb-2" style={{ color: "rgba(255,255,255,0.7)" }}>Tienes un codigo de referido?</p>
+          <div className="flex gap-2">
+            <input placeholder="Ej: ABC123" value={manualCode} onChange={(e) => setManualCode(e.target.value.toUpperCase())}
+              className="flex-1 px-3 py-2.5 rounded-lg text-sm outline-none font-mono tracking-wider" maxLength={6}
+              style={{ background: "rgba(0,0,0,0.3)", color: "white", border: "1px solid rgba(255,255,255,0.08)" }} />
+            <button onClick={applyManualCode} disabled={!manualCode.trim() || applyStatus === "aplicando"}
+              className="px-4 py-2.5 rounded-lg text-sm font-bold transition-all disabled:opacity-30"
+              style={{ background: "#FFD700", color: "#000" }}>
+              {applyStatus === "aplicando" ? "..." : "Aplicar"}
+            </button>
+          </div>
+          {applyStatus === "exito" && <p className="text-xs mt-2" style={{ color: "#22c55e" }}>Codigo aplicado correctamente</p>}
+          {applyStatus === "error" && <p className="text-xs mt-2" style={{ color: "#ef4444" }}>Codigo invalido o ya tienes referido</p>}
+        </div>
+      )}
+
       {/* Hero Banner */}
       <div className="rounded-2xl p-6 text-center relative overflow-hidden" style={{ background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)" }}>
         <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ background: "radial-gradient(circle at 30% 50%, #FFD700, transparent 60%)" }} />
