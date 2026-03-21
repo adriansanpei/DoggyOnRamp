@@ -134,6 +134,7 @@ function PurchaseTable({ purchases }: { purchases: any[] }) {
             <th className="text-left px-4 py-3" style={{ color: "rgba(255,255,255,0.5)" }}>Wallet</th>
             <th className="text-left px-4 py-3" style={{ color: "rgba(255,255,255,0.5)" }}>DOGGY</th>
             <th className="text-left px-4 py-3" style={{ color: "rgba(255,255,255,0.5)" }}>MXN</th>
+            <th className="text-left px-4 py-3" style={{ color: "rgba(255,255,255,0.5)" }}>SOL</th>
             <th className="text-left px-4 py-3" style={{ color: "rgba(255,255,255,0.5)" }}>TX</th>
             <th className="text-left px-4 py-3" style={{ color: "rgba(255,255,255,0.5)" }}>Status</th>
             <th className="text-left px-4 py-3" style={{ color: "rgba(255,255,255,0.5)" }}>Fecha</th>
@@ -141,24 +142,27 @@ function PurchaseTable({ purchases }: { purchases: any[] }) {
         </thead>
         <tbody>
           {purchases.length === 0 ? (
-            <tr><td colSpan={6} className="text-center py-8" style={{ color: "rgba(255,255,255,0.4)" }}>Sin compras</td></tr>
+            <tr><td colSpan={7} className="text-center py-8" style={{ color: "rgba(255,255,255,0.4)" }}>Sin compras</td></tr>
           ) : purchases.map((p: any) => (
             <tr key={p.id} style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
               <td className="px-4 py-3 font-mono text-xs" style={{ color: "rgba(255,255,255,0.8)" }}>
-                {p.buyer_wallet?.slice(0, 6)}...{p.buyer_wallet?.slice(-4)}
+                {p.user_wallet?.slice(0, 6)}...{p.user_wallet?.slice(-4)}
               </td>
-              <td className="px-4 py-3" style={{ color: "#FFD700" }}>{p.amount_doggy || "-"}</td>
-              <td className="px-4 py-3" style={{ color: "rgba(255,255,255,0.7)" }}>${p.amount_mxn || "-"}</td>
+              <td className="px-4 py-3" style={{ color: "#FFD700" }}>{p.doggy_amount || "-"}</td>
+              <td className="px-4 py-3" style={{ color: "rgba(255,255,255,0.7)" }}>${p.mxn_amount || "-"}</td>
+              {p.sol_usd > 0 && (
+                <td className="px-4 py-3" style={{ color: "#9945FF" }}>${p.sol_usd} USD SOL</td>
+              )}
               <td className="px-4 py-3">
-                {p.tx_signature ? (
-                  <a href={`https://solscan.io/tx/${p.tx_signature}`} target="_blank" className="font-mono text-xs" style={{ color: "#3b82f6" }}>
+                {p.solana_tx_signature ? (
+                  <a href={`https://solscan.io/tx/${p.solana_tx_signature}`} target="_blank" className="font-mono text-xs" style={{ color: "#3b82f6" }}>
                     Ver TX
                   </a>
                 ) : "-"}
               </td>
               <td className="px-4 py-3">
-                <span className="text-xs px-2 py-1 rounded-full" style={{ background: p.status === "completed" ? "rgba(34,197,94,0.15)" : "rgba(234,179,8,0.15)", color: p.status === "completed" ? "#22c55e" : "#eab308" }}>
-                  {p.status === "completed" ? "Completada" : p.status}
+                <span className="text-xs px-2 py-1 rounded-full" style={{ background: p.status === "completed" ? "rgba(34,197,94,0.15)" : p.status === "cancelled" ? "rgba(239,68,68,0.15)" : "rgba(234,179,8,0.15)", color: p.status === "completed" ? "#22c55e" : p.status === "cancelled" ? "#ef4444" : "#eab308" }}>
+                  {p.status === "completed" ? "Completada" : p.status === "cancelled" ? "Cancelada" : p.status}
                 </span>
               </td>
               <td className="px-4 py-3 text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
