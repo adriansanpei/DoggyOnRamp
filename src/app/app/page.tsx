@@ -147,8 +147,12 @@ export default function AppPage() {
   };
 
   const handleLogout = async () => {
-    await disconnectAsync();
-    router.push("/");
+    try {
+      await disconnectAsync();
+      router.push("/");
+    } catch {
+      router.push("/");
+    }
   };
 
   return (

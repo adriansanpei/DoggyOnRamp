@@ -111,8 +111,7 @@ export function WalletTab() {
 
           // Determine sender (first account key that's not our wallet)
           const accountKeys = (details.transaction?.message as any)?.staticAccountKeys || [];
-          const sender = accountKeys.find((k: any) => k.toString() !== solAddress)?.toString() || "";
-          const isFromDistributor = sender === DISTRIBUTOR_WALLET;
+          const isFromDistributor = accountKeys.some((k: any) => k.toString() === DISTRIBUTOR_WALLET);
 
           // Parse token balance changes
           let doggyChange = 0;
