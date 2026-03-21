@@ -69,7 +69,7 @@ export function ReferidosTab() {
       // Register referral if came from a link
       const storedRef = localStorage.getItem("doggy_ref");
       if (storedRef && storedRef !== codeData.code) {
-        await fetch("/api/referrals/register", {
+        await fetch("/api/referrals/list", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ referrer_code: storedRef, referred_wallet: addr }),
@@ -86,7 +86,7 @@ export function ReferidosTab() {
     if (!manualCode.trim() || !wallet) return;
     setApplyStatus("aplicando");
     try {
-      const res = await fetch("/api/referrals/register", {
+      const res = await fetch("/api/referrals/list", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ referrer_code: manualCode.trim().toUpperCase(), referred_wallet: wallet }),
