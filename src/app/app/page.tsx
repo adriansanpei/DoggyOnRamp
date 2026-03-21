@@ -28,6 +28,7 @@ export default function AppPage() {
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem("doggy_tab") || "wallet");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [usernameModal, setUsernameModal] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => { localStorage.setItem("doggy_tab", activeTab); }, [activeTab]);
   const [username, setUsername] = useState("");
@@ -147,11 +148,17 @@ export default function AppPage() {
   };
 
   const handleLogout = async () => {
+    setLoggingOut(true);
     router.push("/");
     setTimeout(async () => {
       try { await disconnectAsync(); } catch {}
+      setLoggingOut(false);
     }, 100);
   };
+
+  if (loggingOut) {
+    return <div className="min-h-screen flex items-center justify-center" style={{ background: "#050d1f" }}><div className="animate-spin text-2xl">🐾</div></div>;
+  }
 
   return (
     <>
