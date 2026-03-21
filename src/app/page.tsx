@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useAccount } from "@particle-network/connectkit";
+import { useAccount, useConnect } from "@particle-network/connectkit";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/HeroSection";
@@ -14,8 +14,12 @@ export default function Home() {
   const { isConnected } = useAccount();
   const router = useRouter();
 
+  console.log("[LANDING] isConnected:", isConnected);
+
   useEffect(() => {
+    console.log("[LANDING] useEffect fired, isConnected:", isConnected);
     if (isConnected) {
+      console.log("[LANDING] Redirecting to /app");
       router.push("/app");
     }
   }, [isConnected, router]);

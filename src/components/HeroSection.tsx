@@ -1,9 +1,23 @@
 "use client";
 import { PhoneMockup } from "@/components/PhoneMockup";
-import { useModal } from "@particle-network/connectkit";
+import { useModal, useConnect } from "@particle-network/connectkit";
+import { useAccount } from "@particle-network/connectkit";
+import { useEffect, useRef } from "react";
 
 export function HeroSection() {
   const { setOpen } = useModal();
+  const { connect } = useConnect();
+  const { isConnected } = useAccount();
+  const authDoneRef = useRef(false);
+
+  // After auth modal closes, if not connected, auto-connect wallet
+  useEffect(() => {
+    if (!authDoneRef.current) return;
+    if (isConnected) { authDoneRef.current = false; return; }
+    // Auth was done but not connected — trigger wallet connection
+    const timer = setTimeout(() => { connect(); }, 500);
+    return () => clearTimeout(timer);
+  }, [isConnected, connect]);
   return (
     <section
       id="inicio"
@@ -132,7 +146,7 @@ export function HeroSection() {
               
               {/* Auth Button */}
               <div className="mt-8" style={{ animation: "fadeUp 0.6s ease 0.4s both" }}>
-                <button className="px-6 py-3 rounded-lg text-sm font-semibold" style={{background:"linear-gradient(135deg,#FFD700 0%,#FFA500 100%)",color:"#000"}} onClick={() => setOpen(true)}>Comprar ahora</button>
+                <button className="px-6 py-3 rounded-lg text-sm font-semibold" style={{background:"linear-gradient(135deg,#FFD700 0%,#FFA500 100%)",color:"#000"}} onClick={() => { setOpen(true); authDoneRef.current = true; }}>Comprar ahora</button>
               </div>
             </div>
           </div>
