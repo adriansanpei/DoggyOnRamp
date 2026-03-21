@@ -190,10 +190,10 @@ export function ReferidosTab() {
       )}
 
       {/* Hero Banner + Stats + List */}
-      <div>
+      <div className="space-y-6">
       <div className="rounded-2xl p-6 text-center relative overflow-hidden" style={{ background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)" }}>
         <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ background: "radial-gradient(circle at 30% 50%, #FFD700, transparent 60%)" }} />
-        <h2 className="text-xl font-bold mb-2" style={{ color: "#FFD700" }}>Gana DOGGY por invitar</h2>
+        <h2 className="text-xl font-bold mb-3" style={{ color: "#FFD700" }}>Gana DOGGY por invitar</h2>
         <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.7)" }}>
           DOGGY te premia con mas DOGGY si lo compartes con tus amigos y familia.
         </p>
@@ -205,7 +205,7 @@ export function ReferidosTab() {
           <div className="flex-1 px-4 py-3 rounded-lg text-sm truncate" style={{ background: "rgba(0,0,0,0.3)", color: "rgba(255,255,255,0.8)" }}>
             {refLink || "Cargando..."}
           </div>
-          <button onClick={copyLink} className="px-4 py-3 rounded-lg text-sm font-bold transition-all" style={{ background: copied ? "#22c55e" : "#FFD700", color: "#000" }}>
+          <button onClick={copyLink} className="px-4 py-3 rounded-lg text-sm font-bold transition-all shrink-0" style={{ background: copied ? "#22c55e" : "#FFD700", color: "#000" }}>
             {copied ? "Copiado" : "Copiar"}
           </button>
         </div>
@@ -217,7 +217,7 @@ export function ReferidosTab() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: "Invitados", value: stats.total, color: "#a78bfa" },
           { label: "Calificados", value: stats.qualified, color: "#22c55e" },
@@ -233,7 +233,7 @@ export function ReferidosTab() {
 
       {/* Referrals List */}
       <div>
-        <h3 className="text-base font-semibold mb-3" style={{ color: "rgba(255,255,255,0.9)" }}>
+        <h3 className="text-base font-semibold mb-4" style={{ color: "rgba(255,255,255,0.9)" }}>
           Mis Invitados
         </h3>
         {loading ? (
@@ -249,13 +249,13 @@ export function ReferidosTab() {
         ) : (
           <div className="space-y-2">
             {referrals.map((r: any) => (
-              <div key={r.id} className="flex items-center justify-between rounded-xl px-4 py-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs" style={{ background: "rgba(255,215,0,0.1)", color: "#FFD700" }}>
+              <div key={r.id} className="flex items-center justify-between rounded-xl px-4 py-3 gap-2 flex-wrap" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs shrink-0" style={{ background: "rgba(255,215,0,0.1)", color: "#FFD700" }}>
                     {r.referred_wallet?.slice(0, 2).toUpperCase()}
                   </div>
-                  <div>
-                    <div className="text-sm font-mono" style={{ color: "rgba(255,255,255,0.8)" }}>
+                  <div className="min-w-0">
+                    <div className="text-sm font-mono truncate" style={{ color: "rgba(255,255,255,0.8)" }}>
                       {r.referred_wallet?.slice(0, 4)}...{r.referred_wallet?.slice(-4)}
                     </div>
                     <div className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
@@ -263,12 +263,14 @@ export function ReferidosTab() {
                     </div>
                   </div>
                 </div>
+                <div className="flex items-center gap-2 shrink-0">
                 {statusBadge(r.status)}
                 {r.status === "qualified" && (
-                  <button onClick={() => handleClaim(r.id)} className="px-3 py-1.5 rounded-lg text-xs font-bold ml-2" style={{ background: "#FFD700", color: "#000" }}>
+                  <button onClick={() => handleClaim(r.id)} className="px-3 py-1.5 rounded-lg text-xs font-bold" style={{ background: "#FFD700", color: "#000" }}>
                     Reclamar
                   </button>
                 )}
+                </div>
               </div>
             ))}
           </div>
