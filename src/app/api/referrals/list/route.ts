@@ -55,11 +55,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: "already referred" });
   }
 
-  // Check if user already has purchases (existing user - no referral)
+  // Check if user already has completed purchases in doggy_orders
   const { data: pastOrders } = await supabase
-    .from("purchases")
+    .from("doggy_orders")
     .select("id")
-    .eq("buyer_wallet", referred_wallet)
+    .eq("user_wallet", referred_wallet)
     .eq("status", "completed")
     .limit(1);
 
