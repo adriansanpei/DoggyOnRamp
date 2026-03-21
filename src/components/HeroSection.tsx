@@ -1,23 +1,20 @@
 "use client";
 import { PhoneMockup } from "@/components/PhoneMockup";
-import { useModal, useConnect } from "@particle-network/connectkit";
-import { useAccount } from "@particle-network/connectkit";
+import { useModal, useAccount } from "@particle-network/connectkit";
 import { useEffect, useRef } from "react";
 
 export function HeroSection() {
   const { setOpen } = useModal();
-  const { connect } = useConnect();
   const { isConnected } = useAccount();
   const authDoneRef = useRef(false);
 
-  // After auth modal closes, if not connected, auto-connect wallet
+  // After auth modal closes, if not connected, auto-reopen for wallet connection
   useEffect(() => {
     if (!authDoneRef.current) return;
     if (isConnected) { authDoneRef.current = false; return; }
-    // Auth was done but not connected — trigger wallet connection
-    const timer = setTimeout(() => { connect(); }, 500);
+    const timer = setTimeout(() => { setOpen(true); }, 300);
     return () => clearTimeout(timer);
-  }, [isConnected, connect]);
+  }, [isConnected]);
   return (
     <section
       id="inicio"
