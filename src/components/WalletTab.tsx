@@ -105,9 +105,11 @@ export function WalletTab() {
         const date = t.timestamp ? new Date(t.timestamp * 1000).toLocaleString("es-MX", { timeZone: "America/Mexico_City", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "N/A";
         let amount = "";
         if (Math.abs(t.doggyDelta) > 0.001) {
-          amount = `${t.doggyDelta > 0 ? "+" : ""}${t.doggyDelta.toFixed(t.doggyDelta < 1 ? 6 : 2)} DOGGY`;
+          const delta = (t.type === "Compra" || t.type === "Depósito") ? Math.abs(t.doggyDelta) : t.doggyDelta;
+          amount = `${delta > 0 ? "+" : ""}${delta.toFixed(delta < 1 ? 6 : 2)} DOGGY`;
         } else if (Math.abs(t.solDelta) > 0.001) {
-          amount = `${t.solDelta > 0 ? "+" : ""}${t.solDelta.toFixed(4)} SOL`;
+          const delta = t.type === "Depósito" ? Math.abs(t.solDelta) : t.solDelta;
+          amount = `${delta > 0 ? "+" : ""}${delta.toFixed(4)} SOL`;
         }
         return {
           signature: t.signature,
