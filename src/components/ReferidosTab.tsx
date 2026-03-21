@@ -77,9 +77,23 @@ export function ReferidosTab() {
   };
 
   const copyLink = () => {
-    navigator.clipboard.writeText(refLink);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    const link = refLink || "";
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(link).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      });
+    } else {
+      // Fallback for non-secure contexts
+      const ta = document.createElement("textarea");
+      ta.value = link;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   const handleClaim = async (referralId: string) => {
