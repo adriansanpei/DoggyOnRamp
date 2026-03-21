@@ -68,6 +68,30 @@ async function sendDoggy(buyerWallet, doggyAmount, orderId, solUsd) {
             .from("doggy_orders")
             .update({ status: "completed", solana_tx_signature: sig })
             .eq("id", orderId);
+        // Auto-qualify referral if buyer has $300+ MXN in completed orders
+        try {
+            const { data: buyerReferral } = await supabase
+                .from("referrals")
+                .select("id, status")
+                .eq("referred_wallet", buyerWallet)
+                .eq("status", "pending")
+                .single();
+            if (buyerReferral) {
+                const { data: buyerOrders } = await supabase
+                    .from("doggy_orders")
+                    .select("mxn_amount")
+                    .eq("user_wallet", buyerWallet)
+                    .eq("status", "completed");
+                const totalMxn = (buyerOrders || []).reduce((s, o) => s + (parseFloat(o.mxn_amount) || 0), 0);
+                if (totalMxn >= 300) {
+                    await supabase.from("referrals").update({ status: "qualified", qualified_at: new Date().toISOString() }).eq("id", buyerReferral.id);
+                    console.log(`Referral ${buyerReferral.id} auto-qualified (total: $${totalMxn.toFixed(2)} MXN)`);
+                }
+            }
+        }
+        catch (e) {
+            console.error("Auto-qualify error:", e);
+        }
         return sig;
     }
     catch (err) {
