@@ -6,7 +6,7 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { getAssociatedTokenAddress, getAccount } from "@solana/spl-token";
 
 const DOGGY_MINT = "BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump";
-const DISTRIBUTOR_WALLET = "9bpCT7GdeLekt2tzjjq34NRr7g8ALbxDhE2kSCYTqy71";
+
 const SOLANA_RPC = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || "https://api.mainnet-beta.solana.com";
 
 interface TxRecord {
@@ -33,7 +33,6 @@ export function WalletTab() {
   const [txLoading, setTxLoading] = useState(false);
   const [txPage, setTxPage] = useState(1);
   const [txHasMore, setTxHasMore] = useState(true);
-  const [txTotalLoaded, setTxTotalLoaded] = useState(0);
   const TX_PER_PAGE = 8;
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -90,108 +89,47 @@ export function WalletTab() {
 
   useEffect(() => { fetchBalances(); const i = setInterval(fetchBalances, 15000); return () => clearInterval(i); }, [fetchBalances]);
 
-  // Fetch transactions
-  const fetchTransactions = useCallback(async (page: number, append: boolean = false) => {
+  // Fetch transactions via API route
+  const fetchTransactions = useCallback(async (append: boolean = false) => {
     if (!solAddress) return;
     if (activeSubTab !== "historial") return;
     setTxLoading(true);
     try {
-      const connection = new Connection(SOLANA_RPC);
-      const sigs = await connection.getSignaturesForAddress(new PublicKey(solAddress), { limit: 25, until: page > 1 ? transactions.length > 0 ? transactions[transactions.length - 1].signature : undefined : undefined });
+      const before = append && transactions.length > 0 ? transactions[transactions.length - 1].signature : undefined;
+      const url = `/api/wallet/history?wallet=${solAddress}&limit=25${before ? `&before=${before}` : ""}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
 
-      const txs = await Promise.all(sigs.map(async (sig) => {
-        try {
-          const details = await connection.getParsedTransaction(sig.signature, { maxSupportedTransactionVersion: 0 });
-          if (!details) return null;
-          const date = sig.blockTime ? new Date(sig.blockTime * 1000).toLocaleString("es-MX", { timeZone: "America/Mexico_City", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "N/A";
-          let type = "Transferencia";
-          let amount = "";
-          let token = "";
-          let isPositive = false;
+      const txs: TxRecord[] = (data.transactions || []).map((t: any) => {
+        const date = t.timestamp ? new Date(t.timestamp * 1000).toLocaleString("es-MX", { timeZone: "America/Mexico_City", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "N/A";
+        let amount = "";
+        if (Math.abs(t.doggyDelta) > 0.001) {
+          amount = `${t.doggyDelta > 0 ? "+" : ""}${t.doggyDelta.toFixed(t.doggyDelta < 1 ? 6 : 2)} DOGGY`;
+        } else if (Math.abs(t.solDelta) > 0.001) {
+          amount = `${t.solDelta > 0 ? "+" : ""}${t.solDelta.toFixed(4)} SOL`;
+        }
+        return {
+          signature: t.signature,
+          timestamp: date,
+          type: t.type,
+          amount: amount || "—",
+          status: "Completado",
+        } as TxRecord;
+      });
 
-          // Determine sender (first account key that's not our wallet)
-          const msg = details.transaction?.message as any;
-          const keys = msg?.accountKeys || [];
-          const source = keys[0]?.pubkey || (typeof keys[0] === "string" ? keys[0] : keys[0]?.toString() || "");
-          const isFromDistributor = source === DISTRIBUTOR_WALLET;
-
-          // Parse token balance changes
-          let doggyChange = 0;
-          let otherChange = 0;
-          let otherToken = "";
-
-          if (details.meta?.preTokenBalances && details.meta?.postTokenBalances) {
-            const pre = details.meta.preTokenBalances;
-            const post = details.meta.postTokenBalances;
-
-            for (let i = 0; i < pre.length; i++) {
-              const change = (Number(post[i]?.uiTokenAmount?.uiAmount || 0)) - (Number(pre[i]?.uiTokenAmount?.uiAmount || 0));
-              if (Math.abs(change) > 0.001) {
-                if (post[i]?.mint === DOGGY_MINT) doggyChange = change;
-                else if (post[i]?.mint !== "So11111111111111111111111111111111111111112") {
-                  otherChange = change;
-                  otherToken = post[i]?.mint === "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v" ? "USDC" : "Token";
-                }
-              }
-            }
-            // New ATAs (post-only entries)
-            for (let i = 0; i < post.length; i++) {
-              if (!pre[i] || pre[i].uiTokenAmount?.uiAmount === null) {
-                const val = Number(post[i]?.uiTokenAmount?.uiAmount || 0);
-                if (val > 0.001 && post[i]?.mint === DOGGY_MINT) doggyChange = val;
-              }
-            }
-          }
-
-          // Prioritize DOGGY > other tokens > SOL
-          if (Math.abs(doggyChange) > 0.001) {
-            amount = `${doggyChange > 0 ? "+" : ""}${doggyChange.toFixed(doggyChange < 1 ? 6 : 2)} DOGGY`;
-            isPositive = doggyChange > 0;
-            type = doggyChange > 0 ? (isFromDistributor ? "Compra" : "Depósito") : "Envío";
-          } else if (Math.abs(otherChange) > 0.001) {
-            amount = `${otherChange > 0 ? "+" : ""}${otherChange.toFixed(otherChange < 1 ? 6 : 2)} ${otherToken}`;
-            isPositive = otherChange > 0;
-            type = otherChange > 0 ? "Depósito" : "Envío";
-          } else if (details.meta) {
-            const preBal = (details.meta.preBalances[0] || 0) / 1e9;
-            const postBal = (details.meta.postBalances[0] || 0) / 1e9;
-            const change = postBal - preBal;
-            // Only show SOL if significant (>0.001, not just fees)
-            if (Math.abs(change) > 0.001) {
-              amount = `${change > 0 ? "+" : ""}${change.toFixed(4)} SOL`;
-              isPositive = change > 0;
-              type = change > 0 ? "Depósito" : "Envío";
-            } else {
-              return null; // Skip dust (tx fees only)
-            }
-          }
-
-          if (!amount) return null;
-
-          return {
-            signature: sig.signature,
-            timestamp: date,
-            type,
-            amount,
-            status: sig.confirmationStatus === "finalized" ? "Completado" : sig.confirmationStatus === "confirmed" ? "Confirmado" : "Pendiente",
-            token: token || undefined,
-          } as TxRecord;
-        } catch { return null; }
-      }));
-
-      const filtered = txs.filter((t): t is TxRecord => t !== null);
       if (append) {
-        setTransactions(prev => [...prev, ...filtered]);
+        setTransactions(prev => [...prev, ...txs]);
       } else {
-        setTransactions(filtered);
+        setTransactions(txs);
+        setTxPage(1);
       }
-      setTxTotalLoaded(prev => append ? prev + filtered.length : filtered.length);
-      setTxHasMore(sigs.length >= 25);
+      setTxHasMore(data.hasMore);
     } catch (err) { console.error("Tx fetch error:", err); }
     finally { setTxLoading(false); }
-  }, [solAddress, activeSubTab]);
+  }, [solAddress, activeSubTab, transactions.length]);
 
-  useEffect(() => { setTxPage(1); fetchTransactions(1, false); }, [fetchTransactions]);
+  useEffect(() => { fetchTransactions(false); }, [fetchTransactions]);
 
   // Draw PnL chart
   useEffect(() => {
@@ -386,9 +324,9 @@ export function WalletTab() {
                       style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.7)" }}>
                       ← Anterior
                     </button>
-                    {(TX_PER_PAGE * txPage) >= transactions.length && txHasMore ? (
+                    {txHasMore ? (
                       <button
-                        onClick={() => { fetchTransactions(txPage + 1, true); setTxPage(p => p + 1); }}
+                        onClick={() => { fetchTransactions(true); setTxPage(p => p + 1); }}
                         disabled={txLoading}
                         className="text-[10px] px-3 py-1 rounded-lg disabled:opacity-30"
                         style={{ background: "rgba(255,215,0,0.15)", color: "#FFD700" }}>
@@ -396,8 +334,7 @@ export function WalletTab() {
                       </button>
                     ) : (
                       <button
-                        onClick={() => setTxPage(p => p + 1)}
-                        disabled={(TX_PER_PAGE * txPage) >= transactions.length}
+                        disabled
                         className="text-[10px] px-3 py-1 rounded-lg disabled:opacity-30"
                         style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.7)" }}>
                         Siguiente →
