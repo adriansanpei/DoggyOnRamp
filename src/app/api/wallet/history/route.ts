@@ -87,8 +87,6 @@ export async function GET(req: Request) {
             classified[i].solDelta = postBal - preBal;
           }
 
-          classified[i].doggyDelta = doggyDelta;
-          classified[i].solDelta = solDelta;
         }
       });
     }
