@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useAccount, useConnect } from "@particle-network/connectkit";
+import { useAccount } from "@particle-network/connectkit";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/HeroSection";
