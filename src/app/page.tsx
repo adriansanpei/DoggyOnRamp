@@ -17,7 +17,12 @@ export default function Home() {
   useEffect(() => {
     if (isConnected) {
       router.push("/app");
+      return;
     }
+    const check = setInterval(() => {
+      if (isConnected) { router.push("/app"); clearInterval(check); }
+    }, 1000);
+    return () => clearInterval(check);
   }, [isConnected, router]);
 
   return (
