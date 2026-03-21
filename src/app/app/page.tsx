@@ -148,8 +148,7 @@ export default function AppPage() {
   };
 
   const handleLogout = async () => {
-    try { await disconnectAsync(); } catch {}
-    setTimeout(() => { window.location.href = "/"; }, 200);
+    window.location.href = "/logout";
   };
 
   if (loggingOut) {
