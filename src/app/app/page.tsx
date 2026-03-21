@@ -21,7 +21,6 @@ const tabs = [
   { id: "compras", label: "🛒 Comprar" },
   { id: "vender", label: "💸 Vender" },
   { id: "wallet", label: "👛 Wallet" },
-  { id: "staking", label: "🥩 Staking" },
   { id: "referidos", label: "Referidos" },
 ];
 

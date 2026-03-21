@@ -25,6 +25,7 @@ export function ComprasTab({ onGoToWallet }: { onGoToWallet?: () => void }) {
   const [step, setStep] = useState<"input" | "payment" | "success">("input");
   const [order, setOrder] = useState<any>(null);
   const [timeLeft, setTimeLeft] = useState(0);
+  const [solOption, setSolOption] = useState<"none" | "0.50" | "3">("none");
   const [checking, setChecking] = useState(false);
 
   // History state
@@ -137,6 +138,7 @@ export function ComprasTab({ onGoToWallet }: { onGoToWallet?: () => void }) {
         body: JSON.stringify({
           mxnAmount: parseFloat(mxnAmount),
           userWallet,
+          solOption: solOption !== "none" ? parseFloat(solOption) : 0,
         }),
       });
       const data = await res.json();
@@ -436,7 +438,7 @@ export function ComprasTab({ onGoToWallet }: { onGoToWallet?: () => void }) {
             </div>
             <div className="relative flex-1">
               <span className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-500 text-xl">$</span>
-              <input type="number" placeholder="0.00" value={mxnAmount} onChange={(e) => { setMxnAmount(e.target.value); setError(""); }}
+              <input type="number" placeholder="0.00" value={mxnAmount} onChange={(e) => { setMxnAmount(e.target.value); setError(""); setSolOption("none"); }}
                 className="w-full bg-transparent text-white text-2xl font-light text-right outline-none placeholder-gray-600 pl-6 min-w-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
             </div>
           </div>
@@ -450,6 +452,38 @@ export function ComprasTab({ onGoToWallet }: { onGoToWallet?: () => void }) {
             ))}
           </div>
         </div>
+
+        {/* SOL for gas option */}
+        {mxnAmount && parseFloat(mxnAmount) >= 10 && usdcMxn && (
+          <div className="rounded-xl p-3" style={{ background: "#1a1b2e", border: "1px solid rgba(255,255,255,0.04)" }}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-gray-400 text-xs font-medium">SOL para comisiones (gas)</span>
+            </div>
+            <p className="text-gray-500 text-[11px] mb-2">Los normies necesitan SOL para hacer transacciones en Solana.</p>
+            <div className="flex gap-2">
+              {([
+                { value: "none", label: "Sin SOL", desc: `${mxnAmount} MXN 100% en DOGGY` },
+                { value: "0.50", label: "$0.50 USD", desc: `$${(parseFloat(mxnAmount) - 0.50 * usdcMxn).toFixed(0)} DOGGY + $${(0.50 * usdcMxn).toFixed(0)} SOL` },
+                { value: "3", label: "$3 USD", desc: `$${(parseFloat(mxnAmount) - 3 * usdcMxn).toFixed(0)} DOGGY + $${(3 * usdcMxn).toFixed(0)} SOL` },
+              ] as const).map((opt) => {
+                const disabled = opt.value !== "none" && (parseFloat(mxnAmount) - parseFloat(opt.value) * usdcMxn < 10);
+                return (
+                  <button key={opt.value} disabled={disabled}
+                    onClick={() => setSolOption(opt.value)}
+                    className="flex-1 py-2 rounded-lg text-xs transition-all"
+                    style={{
+                      background: solOption === opt.value ? "rgba(255,215,0,0.1)" : "rgba(255,255,255,0.03)",
+                      border: solOption === opt.value ? "1px solid rgba(255,215,0,0.3)" : "1px solid rgba(255,255,255,0.06)",
+                      color: disabled ? "rgba(255,255,255,0.2)" : solOption === opt.value ? "#FFD700" : "rgba(255,255,255,0.5)",
+                    }}>
+                    <div className="font-medium">{opt.label}</div>
+                    <div className="text-[10px] mt-0.5 opacity-60">{disabled ? "Monto insuficiente" : opt.desc}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Conversion */}
         <div className="flex items-center justify-center gap-2 text-gray-500 text-xs">
