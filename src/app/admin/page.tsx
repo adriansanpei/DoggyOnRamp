@@ -202,7 +202,9 @@ function PurchaseTable({ purchases }: { purchases: any[] }) {
     </div>
     </div>
   );
-}({ referrals, onUpdate }: { referrals: any[]; onUpdate: (id: string, status: string, note?: string) => void }) {
+}
+
+function ReferralTable({ referrals, onUpdate }: { referrals: any[]; onUpdate: (id: string, status: string, note?: string) => void }) {
   return (
     <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
       <table className="w-full text-sm">
