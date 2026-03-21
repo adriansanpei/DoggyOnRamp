@@ -35,6 +35,14 @@ const distributorKeypair = Keypair.fromSecretKey(bs58.decode(DISTRIBUTOR_PRIVATE
 const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 
 // === HELPER: Send DOGGY ===
+async function getSolPrice(): Promise<number> {
+  try {
+    const res = await fetch("https://api.binance.us/api/v3/ticker/price?symbol=SOLUSDC");
+    if (res.ok) { const data: any = await res.json(); return parseFloat(data.price); }
+  } catch {}
+  return 150; // fallback
+}
+
 async function sendDoggy(buyerWallet: string, doggyAmount: number, orderId: string, solUsd?: number): Promise<string | null> {
   try {
     const buyerPk = new PublicKey(buyerWallet);
@@ -67,8 +75,8 @@ async function sendDoggy(buyerWallet: string, doggyAmount: number, orderId: stri
 
     // SOL transfer for gas if requested
     if (solUsd && solUsd > 0) {
-      // Approximate SOL amount: ~$170 SOL = 1 USD (rough estimate, actual rate via balance check)
-      const solAmount = solUsd * 0.006; // $0.50 ≈ 0.003 SOL, $3 ≈ 0.018 SOL
+      const solPrice = await getSolPrice();
+      const solAmount = solUsd / solPrice;
       tx.add(
         SystemProgram.transfer({
           fromPubkey: distributorKeypair.publicKey,

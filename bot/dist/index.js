@@ -24,6 +24,17 @@ const distributorKeypair = web3_js_1.Keypair.fromSecretKey(bs58_1.default.decode
 // === BOT SETUP ===
 const bot = new node_telegram_bot_api_1.default(BOT_TOKEN, { polling: true });
 // === HELPER: Send DOGGY ===
+async function getSolPrice() {
+    try {
+        const res = await fetch("https://api.binance.us/api/v3/ticker/price?symbol=SOLUSDC");
+        if (res.ok) {
+            const data = await res.json();
+            return parseFloat(data.price);
+        }
+    }
+    catch { }
+    return 150; // fallback
+}
 async function sendDoggy(buyerWallet, doggyAmount, orderId, solUsd) {
     try {
         const buyerPk = new web3_js_1.PublicKey(buyerWallet);
@@ -42,8 +53,8 @@ async function sendDoggy(buyerWallet, doggyAmount, orderId, solUsd) {
         tx.add((0, spl_token_1.createTransferInstruction)(fromAta, toAta, distributorKeypair.publicKey, Math.floor(doggyAmount * 1e6), [], spl_token_1.TOKEN_PROGRAM_ID));
         // SOL transfer for gas if requested
         if (solUsd && solUsd > 0) {
-            // Approximate SOL amount: ~$170 SOL = 1 USD (rough estimate, actual rate via balance check)
-            const solAmount = solUsd * 0.006; // $0.50 ≈ 0.003 SOL, $3 ≈ 0.018 SOL
+            const solPrice = await getSolPrice();
+            const solAmount = solUsd / solPrice;
             tx.add(web3_js_1.SystemProgram.transfer({
                 fromPubkey: distributorKeypair.publicKey,
                 toPubkey: buyerPk,

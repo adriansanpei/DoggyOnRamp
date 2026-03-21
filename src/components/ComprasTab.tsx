@@ -525,7 +525,7 @@ export function ComprasTab({ onGoToWallet }: { onGoToWallet?: () => void }) {
           {solOption !== "none" && (
             <div className="flex items-center gap-3 mt-2">
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl shrink-0" style={{ background: "#252538" }}>
-                <span className="text-sm">◎</span>
+                <span className="text-sm"><img src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png" alt="" className="w-5 h-5 rounded-full inline-block -mt-0.5" /></span>
                 <span className="text-white text-sm font-medium">SOL</span>
               </div>
               <div className="flex-1 text-right">
