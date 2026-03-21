@@ -64,7 +64,13 @@ export async function GET(req: Request) {
 
           // Get token amount for our wallet specifically (by accountIndex)
           const getAmount = (balances: any[], mint: string): number => {
-            const entry = balances.find((b: any) => b.mint === mint && b.accountIndex === walletIdx);
+            // Try wallet-specific first
+            if (walletIdx >= 0) {
+              const entry = balances.find((b: any) => b.mint === mint && b.accountIndex === walletIdx);
+              if (entry) return entry?.uiTokenAmount?.uiAmount ?? 0;
+            }
+            // Fallback: any balance with that mint (picks first)
+            const entry = balances.find((b: any) => b.mint === mint);
             return entry?.uiTokenAmount?.uiAmount ?? 0;
           };
 
