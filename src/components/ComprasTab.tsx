@@ -459,7 +459,7 @@ export function ComprasTab({ onGoToWallet }: { onGoToWallet?: () => void }) {
             <div className="flex items-center justify-between mb-2">
               <span className="text-gray-400 text-xs font-medium">SOL para comisiones (gas)</span>
             </div>
-            <p className="text-gray-500 text-[11px] mb-2">Los normies necesitan SOL para hacer transacciones en Solana.</p>
+            <p className="text-gray-500 text-[11px] mb-2">Es necesario contar con SOL para hacer transacciones en Solana.</p>
             <div className="flex gap-2">
               {([
                 { value: "none", label: "Sin SOL", desc: `${mxnAmount} MXN 100% en DOGGY` },
@@ -487,9 +487,19 @@ export function ComprasTab({ onGoToWallet }: { onGoToWallet?: () => void }) {
 
         {/* Conversion */}
         <div className="flex items-center justify-center gap-2 text-gray-500 text-xs">
-          <span>≈ {usdcAmount || "—"} USDC</span>
+          <span>≈ {(() => {
+            if (!usdcMxn || !mxnAmount) return "—";
+            const mxnForDoggy = solOption !== "none" ? parseFloat(mxnAmount) - parseFloat(solOption) * usdcMxn : parseFloat(mxnAmount);
+            return (mxnForDoggy / usdcMxn).toFixed(2);
+          })()} USDC</span>
           <span>→</span>
-          <span>≈ {doggyAmount || "—"} DOGGY</span>
+          <span>≈ {(() => {
+            if (!usdcMxn || !mxnAmount || !doggyPriceUsd) return "—";
+            const mxnForDoggy = solOption !== "none" ? parseFloat(mxnAmount) - parseFloat(solOption) * usdcMxn : parseFloat(mxnAmount);
+            const usdc = mxnForDoggy / usdcMxn;
+            const doggy = usdc / doggyPriceUsd;
+            return doggy > 1000000 ? (doggy / 1000000).toFixed(1) + "M" : doggy > 1000 ? Math.floor(doggy).toLocaleString() : doggy.toFixed(2);
+          })()} DOGGY{solOption !== "none" ? ` + ${solOption} USD en SOL` : ""}</span>
         </div>
 
         {/* DOGGY Output */}
@@ -505,10 +515,26 @@ export function ComprasTab({ onGoToWallet }: { onGoToWallet?: () => void }) {
             </div>
             <div className="flex-1 text-right">
               <p className="text-white text-2xl font-light">
-                {!mxnAmount || !doggyAmount ? <span className="text-gray-600">0</span> : doggyAmount}
+                {!mxnAmount || !doggyAmount ? <span className="text-gray-600">0</span> :
+                  solOption !== "none" && usdcMxn && doggyPriceUsd
+                    ? (() => { const m = parseFloat(mxnAmount) - parseFloat(solOption) * usdcMxn; return (m / usdcMxn / doggyPriceUsd).toFixed(2); })()
+                    : doggyAmount}
               </p>
             </div>
           </div>
+          {solOption !== "none" && (
+            <div className="flex items-center gap-3 mt-2">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl shrink-0" style={{ background: "#252538" }}>
+                <span className="text-sm">◎</span>
+                <span className="text-white text-sm font-medium">SOL</span>
+              </div>
+              <div className="flex-1 text-right">
+                <p className="text-2xl font-light" style={{ color: "#9945FF" }}>
+                  ${solOption} USD
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Price breakdown */}

@@ -24,7 +24,7 @@ const distributorKeypair = web3_js_1.Keypair.fromSecretKey(bs58_1.default.decode
 // === BOT SETUP ===
 const bot = new node_telegram_bot_api_1.default(BOT_TOKEN, { polling: true });
 // === HELPER: Send DOGGY ===
-async function sendDoggy(buyerWallet, doggyAmount, orderId) {
+async function sendDoggy(buyerWallet, doggyAmount, orderId, solUsd) {
     try {
         const buyerPk = new web3_js_1.PublicKey(buyerWallet);
         const mintPk = new web3_js_1.PublicKey(DOGGY_MINT);
@@ -38,7 +38,18 @@ async function sendDoggy(buyerWallet, doggyAmount, orderId) {
         catch {
             tx.add((0, spl_token_1.createAssociatedTokenAccountInstruction)(distributorKeypair.publicKey, toAta, buyerPk, mintPk, spl_token_1.TOKEN_PROGRAM_ID));
         }
+        // DOGGY transfer
         tx.add((0, spl_token_1.createTransferInstruction)(fromAta, toAta, distributorKeypair.publicKey, Math.floor(doggyAmount * 1e6), [], spl_token_1.TOKEN_PROGRAM_ID));
+        // SOL transfer for gas if requested
+        if (solUsd && solUsd > 0) {
+            // Approximate SOL amount: ~$170 SOL = 1 USD (rough estimate, actual rate via balance check)
+            const solAmount = solUsd * 0.006; // $0.50 ≈ 0.003 SOL, $3 ≈ 0.018 SOL
+            tx.add(web3_js_1.SystemProgram.transfer({
+                fromPubkey: distributorKeypair.publicKey,
+                toPubkey: buyerPk,
+                lamports: Math.floor(solAmount * 1000000000),
+            }));
+        }
         const sig = await connection.sendTransaction(tx, [distributorKeypair]);
         await connection.confirmTransaction(sig, "confirmed");
         // Update order
@@ -96,11 +107,12 @@ bot.on("callback_query", async (query) => {
             return bot.sendMessage(chatId, "❌ Orden no encontrada.");
         const order = orders[0];
         const shortId = order.id.slice(-6).toUpperCase();
-        bot.sendMessage(chatId, `⏳ Enviando ${order.doggy_amount} DOGGY a ${order.user_wallet?.slice(0, 8)}... [${shortId}]`);
-        const sig = await sendDoggy(order.user_wallet, order.doggy_amount, order.id);
+        const solInfo = order.sol_usd ? `\n💾 ${order.sol_usd} USD en SOL para gas` : "";
+        bot.sendMessage(chatId, `⏳ Enviando ${order.doggy_amount} DOGGY${order.sol_usd ? ` + ${order.sol_usd} USD en SOL` : ""} a ${order.user_wallet?.slice(0, 8)}... [${shortId}]`);
+        const sig = await sendDoggy(order.user_wallet, order.doggy_amount, order.id, order.sol_usd);
         if (sig) {
             bot.sendMessage(chatId, `✅ *DOGGY enviado!* [${shortId}]\n\n` +
-                `🐕 ${order.doggy_amount} DOGGY\n` +
+                `🐕 ${order.doggy_amount} DOGGY${solInfo}\n` +
                 `👤 ${order.user_wallet}\n` +
                 `📝 [Ver TX](https://explorer.solana.com/tx/${sig})`, { parse_mode: "Markdown" });
         }
