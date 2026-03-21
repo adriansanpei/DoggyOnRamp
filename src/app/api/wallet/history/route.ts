@@ -1,5 +1,5 @@
 import { Connection, PublicKey } from "@solana/web3.js";
-import { classifyTransactions, ClassifiedTransaction } from "@/lib/transactionClassifier";
+import { classifyTransactions, ClassifiedTransaction, normalizeAccountKey } from "@/lib/transactionClassifier";
 
 export const dynamic = "force-dynamic";
 
@@ -56,31 +56,35 @@ export async function GET(req: Request) {
           const DOGGY_MINT = "BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump";
           const keys = tx.transaction.message.accountKeys;
 
-          // Find which accountKey index belongs to our wallet
-          const walletIdx = keys.findIndex((k: any) => {
-            const pk = typeof k === "string" ? k : k?.pubkey?.toString?.() || k?.toString?.() || "";
-            return pk === wallet;
-          });
+          // Use normalizeAccountKey for reliable wallet index detection
+          const walletIdx = keys.findIndex(
+            (k: any) => normalizeAccountKey(k) === wallet
+          );
 
-          // Get token amount for our wallet specifically (by accountIndex)
+          // Token delta: use 'owner' field (always plain string) for reliability
           const getAmount = (balances: any[], mint: string): number => {
-            // Try wallet-specific first
+            // Try owner-based lookup first (most reliable)
+            const byOwner = balances.find(
+              (b: any) => b.mint === mint && b.owner === wallet
+            );
+            if (byOwner) return byOwner.uiTokenAmount?.uiAmount ?? 0;
+            // Fallback: accountIndex
             if (walletIdx >= 0) {
-              const entry = balances.find((b: any) => b.mint === mint && b.accountIndex === walletIdx);
-              if (entry) return entry?.uiTokenAmount?.uiAmount ?? 0;
+              const byIdx = balances.find(
+                (b: any) => b.mint === mint && b.accountIndex === walletIdx
+              );
+              if (byIdx) return byIdx.uiTokenAmount?.uiAmount ?? 0;
             }
-            // Fallback: any balance with that mint (picks first)
-            const entry = balances.find((b: any) => b.mint === mint);
-            return entry?.uiTokenAmount?.uiAmount ?? 0;
+            return 0;
           };
 
-          const doggyDelta = getAmount(post, DOGGY_MINT) - getAmount(pre, DOGGY_MINT);
+          classified[i].doggyDelta = getAmount(post, DOGGY_MINT) - getAmount(pre, DOGGY_MINT);
 
-          let solDelta = 0;
+          // SOL delta: must use accountIndex
           if (walletIdx >= 0) {
             const preBal = (tx.meta?.preBalances?.[walletIdx] ?? 0) / 1e9;
             const postBal = (tx.meta?.postBalances?.[walletIdx] ?? 0) / 1e9;
-            solDelta = postBal - preBal;
+            classified[i].solDelta = postBal - preBal;
           }
 
           classified[i].doggyDelta = doggyDelta;

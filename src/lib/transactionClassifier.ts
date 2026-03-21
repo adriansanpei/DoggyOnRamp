@@ -51,7 +51,7 @@ export interface ClassifiedTransaction {
 
 // ─── Normalización de accountKeys ─────────────────────────────────────────────
 
-function normalizeAccountKey(key: any): string {
+export function normalizeAccountKey(key: any): string {
   if (typeof key === "string") return key;
   if (key && typeof key === "object" && "pubkey" in key) {
     const pk = key.pubkey;
