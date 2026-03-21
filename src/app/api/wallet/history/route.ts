@@ -1,10 +1,12 @@
 import { Connection, PublicKey } from "@solana/web3.js";
+import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { classifyTransactions, ClassifiedTransaction, normalizeAccountKey } from "@/lib/transactionClassifier";
 
 export const dynamic = "force-dynamic";
 
 const HELIUS_API_KEY = process.env.HELIUS_API_KEY || "";
 const SOLANA_RPC = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || `https://mainnet.helius-rpc.com/?api-key=${HELIUS_API_KEY}`;
+const DOGGY_MINT = new PublicKey("BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump");
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -18,14 +20,45 @@ export async function GET(req: Request) {
 
   try {
     const connection = new Connection(SOLANA_RPC, "confirmed");
+    const buyerPubkey = new PublicKey(wallet);
+
+    // Derive buyer's ATA for DOGGY (deterministic, no RPC call)
+    const buyerAta = getAssociatedTokenAddressSync(
+      DOGGY_MINT,
+      buyerPubkey,
+      false,
+      TOKEN_PROGRAM_ID
+    );
 
     const options: any = { limit };
     if (before) options.until = before;
 
-    const sigs = await connection.getSignaturesForAddress(
-      new PublicKey(wallet),
-      options
-    );
+    // Fetch signatures from both ATA and wallet in parallel
+    const [ataResult, walletResult] = await Promise.allSettled([
+      connection.getSignaturesForAddress(buyerAta, options),
+      connection.getSignaturesForAddress(buyerPubkey, options),
+    ]);
+
+    // Deduplicate signatures
+    const seen = new Set<string>();
+    const sigs: any[] = [];
+
+    const addSigs = (result: PromiseSettledResult<any[]>) => {
+      if (result.status === "fulfilled") {
+        for (const s of result.value) {
+          if (!seen.has(s.signature)) {
+            seen.add(s.signature);
+            sigs.push(s);
+          }
+        }
+      }
+    };
+
+    addSigs(ataResult);
+    addSigs(walletResult);
+
+    // Sort by slot descending (most recent first)
+    sigs.sort((a, b) => (b.slot || 0) - (a.slot || 0));
 
     if (sigs.length === 0) {
       return Response.json({ transactions: [], hasMore: false });
@@ -37,7 +70,7 @@ export async function GET(req: Request) {
       { heliusApiKey: HELIUS_API_KEY, connection }
     );
 
-    // Fill in doggyDelta and solDelta from Helius if missing
+    // Fill in doggyDelta and solDelta from RPC if missing (Helius Enhanced doesn't provide them)
     if (classified.some((t) => t.source === "helius")) {
       const results = await Promise.allSettled(
         sigs.map((sig) =>
@@ -53,7 +86,6 @@ export async function GET(req: Request) {
           const tx = result.value;
           const pre = tx.meta?.preTokenBalances ?? [];
           const post = tx.meta?.postTokenBalances ?? [];
-          const DOGGY_MINT = "BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump";
           const keys = tx.transaction.message.accountKeys;
 
           // Use normalizeAccountKey for reliable wallet index detection
@@ -78,7 +110,7 @@ export async function GET(req: Request) {
             return 0;
           };
 
-          classified[i].doggyDelta = getAmount(post, DOGGY_MINT) - getAmount(pre, DOGGY_MINT);
+          classified[i].doggyDelta = getAmount(post, DOGGY_MINT.toString()) - getAmount(pre, DOGGY_MINT.toString());
 
           // SOL delta: must use accountIndex
           if (walletIdx >= 0) {
@@ -86,7 +118,6 @@ export async function GET(req: Request) {
             const postBal = (tx.meta?.postBalances?.[walletIdx] ?? 0) / 1e9;
             classified[i].solDelta = postBal - preBal;
           }
-
         }
       });
     }
