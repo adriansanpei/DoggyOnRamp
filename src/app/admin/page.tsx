@@ -133,7 +133,7 @@ function PurchaseTable({ purchases }: { purchases: any[] }) {
   const filtered = purchases.filter((p: any) => {
     if (filterWallet && !p.user_wallet?.toLowerCase().includes(filterWallet.toLowerCase())) return false;
     if (filterMxn && String(p.mxn_amount) !== filterMxn) return false;
-    if (filterDoggy && String(p.doggy_amount) !== filterDoggy) return false;
+    if (filterDoggy && !String(p.doggy_amount).includes(filterDoggy)) return false;
     return true;
   });
 
