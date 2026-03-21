@@ -140,7 +140,7 @@ export function ReferidosTab() {
     <div className="space-y-6 p-2">
       {/* Hero Banner */}
       <div className="rounded-2xl p-6 text-center relative overflow-hidden" style={{ background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)" }}>
-        <div className="absolute inset-0 opacity-10" style={{ background: "radial-gradient(circle at 30% 50%, #FFD700, transparent 60%)" }} />
+        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ background: "radial-gradient(circle at 30% 50%, #FFD700, transparent 60%)" }} />
         <h2 className="text-xl font-bold mb-2" style={{ color: "#FFD700" }}>Gana DOGGY por invitar</h2>
         <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.7)" }}>
           DOGGY te premia con mas DOGGY si lo compartes con tus amigos y familia.
