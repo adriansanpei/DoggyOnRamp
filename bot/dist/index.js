@@ -143,16 +143,19 @@ async function setupRealtime() {
             return;
         if (payload.eventType === "INSERT" && order.status === "pending") {
             const shortId = order.id.slice(-6).toUpperCase();
+            const solLine = order.sol_usd ? `\n💾 SOL: $${order.sol_usd} USD ($${order.sol_mxn?.toFixed(2)} MXN)` : "";
             bot.sendMessage(ADMIN_CHAT_ID, `🆕 *Nueva orden DOGGY* [${shortId}]\n\n` +
                 `💰 MXN: $${order.mxn_amount}\n` +
                 `🐕 DOGGY: ${order.doggy_amount}\n` +
+                solLine +
                 `💵 Monto SPEI: $${order.exact_amount?.toFixed(2)}\n` +
                 `👤 Wallet: ${order.user_wallet}`, { parse_mode: "Markdown" });
         }
         if (payload.eventType === "UPDATE" && order.status === "payment_reported") {
             const shortId = order.id.slice(-6).toUpperCase();
+            const solLine = order.sol_usd ? ` + $${order.sol_usd} USD SOL` : "";
             bot.sendMessage(ADMIN_CHAT_ID, `💳 *Pago reportado* [${shortId}]\n\n` +
-                `💰 $${order.mxn_amount} MXN → ${order.doggy_amount} DOGGY\n` +
+                `💰 $${order.mxn_amount} MXN → ${order.doggy_amount} DOGGY${solLine}\n` +
                 `💵 Monto SPEI: $${order.exact_amount?.toFixed(2)}\n` +
                 `👤 ${order.user_wallet}\n\n` +
                 `¿El pago SPEI llegó?`, {

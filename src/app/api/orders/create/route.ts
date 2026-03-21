@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
         doggy_amount: doggyAmount,
         usdc_amount: usdcAmount,
         usdc_mxn_rate: usdcMxnRate,
-        exact_amount: mxnForDoggy,
+        exact_amount: mxnAmount, // Full amount user pays via SPEI
         sol_usd: solUsd,
         sol_mxn: solMxn,
         status: "pending",
