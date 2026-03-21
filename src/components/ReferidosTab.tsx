@@ -12,6 +12,7 @@ export function ReferidosTab() {
   const [referrals, setReferrals] = useState<any[]>([]);
   const [stats, setStats] = useState({ total: 0, qualified: 0, paid: 0, doggyEarned: 0 });
   const [loading, setLoading] = useState(true);
+  const [claiming, setClaiming] = useState<string | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -79,6 +80,27 @@ export function ReferidosTab() {
     navigator.clipboard.writeText(refLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleClaim = async (referralId: string) => {
+    setClaiming(referralId);
+    try {
+      // Check if referred user has >= $300 MXN in purchases
+      const referral = referrals.find((r: any) => r.id === referralId);
+      if (!referral) return;
+      const res = await fetch("/api/referrals/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ referral_id: referralId, referred_wallet: referral.referred_wallet }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert("Reclamo enviado. El administrador revisara tu recompensa de 2,000 DOGGY.");
+      } else {
+        alert(data.error || "No se pudo reclamar");
+      }
+    } catch { alert("Error al reclamar"); }
+    setClaiming(null);
   };
 
   const statusBadge = (status: string) => {
@@ -176,6 +198,11 @@ export function ReferidosTab() {
                   </div>
                 </div>
                 {statusBadge(r.status)}
+                {r.status === "qualified" && (
+                  <button onClick={() => handleClaim(r.id)} className="px-3 py-1.5 rounded-lg text-xs font-bold ml-2" style={{ background: "#FFD700", color: "#000" }}>
+                    Reclamar
+                  </button>
+                )}
               </div>
             ))}
           </div>
