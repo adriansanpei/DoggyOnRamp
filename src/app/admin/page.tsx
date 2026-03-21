@@ -53,6 +53,7 @@ function AdminDashboard() {
   const [purchases, setPurchases] = useState<any[]>([]);
   const [referrals, setReferrals] = useState<any[]>([]);
   const [claims, setClaims] = useState<any[]>([]);
+  const [config, setConfig] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
@@ -69,6 +70,9 @@ function AdminDashboard() {
       setPurchases(pData.purchases || []);
       setReferrals(rData.referrals || []);
       setClaims(cData.claims || []);
+      const cfgRes = await fetch("/api/admin/config");
+      const cfgData = await cfgRes.json();
+      setConfig(cfgData.config || {});
     } catch (e) {
       console.error(e);
     }
@@ -90,6 +94,7 @@ function AdminDashboard() {
     { id: "purchases", label: "Compras" },
     { id: "referrals", label: "Referidos" },
     { id: "claims", label: "Reclamos" },
+    { id: "config", label: "Config" },
   ];
 
   return (
@@ -119,7 +124,9 @@ function AdminDashboard() {
           <ReferralTable referrals={referrals} onUpdate={updateReferralStatus} />
         ) : (
           <ClaimsTable claims={claims} referrals={referrals} purchases={purchases} onUpdate={updateReferralStatus} />
-        )}
+        ) : activeTab === "config" ? (
+          <ConfigTab config={config} onUpdated={() => load()} />
+        ) : null}
       </div>
     </div>
   );
@@ -331,6 +338,45 @@ function ClaimsTable({ claims, referrals, purchases, onUpdate }: { claims: any[]
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+function ConfigTab({ config, onUpdated }: { config: Record<string, string>; onUpdated: () => void }) {
+  const [saving, setSaving] = useState(false);
+
+  const updateConfig = async (key: string, value: string) => {
+    setSaving(true);
+    try {
+      await fetch("/api/admin/config", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key, value }) });
+      onUpdated();
+    } catch (e) { console.error(e); }
+    setSaving(false);
+  };
+
+  return (
+    <div className="space-y-4 max-w-lg">
+      <h3 className="text-base font-semibold" style={{ color: "rgba(255,255,255,0.9)" }}>Configuracion</h3>
+      <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+        <label className="text-xs block mb-2" style={{ color: "rgba(255,255,255,0.5)" }}>Monto minimo para calificar referido (MXN)</label>
+        <div className="flex items-center gap-2">
+          <span style={{ color: "rgba(255,255,255,0.3)" }}>$</span>
+          <input type="number" defaultValue={config.referral_min_mxn || "300"}
+            onBlur={(e) => updateConfig("referral_min_mxn", e.target.value)}
+            className="px-3 py-2 rounded-lg text-sm outline-none w-24" style={{ background: "rgba(0,0,0,0.3)", color: "white", border: "1px solid rgba(255,255,255,0.08)" }} />
+          <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>MXN</span>
+        </div>
+      </div>
+      <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+        <label className="text-xs block mb-2" style={{ color: "rgba(255,255,255,0.5)" }}>Recompensa por referido calificado (DOGGY)</label>
+        <div className="flex items-center gap-2">
+          <input type="number" defaultValue={config.referral_reward_doggy || "2000"}
+            onBlur={(e) => updateConfig("referral_reward_doggy", e.target.value)}
+            className="px-3 py-2 rounded-lg text-sm outline-none w-32" style={{ background: "rgba(0,0,0,0.3)", color: "white", border: "1px solid rgba(255,255,255,0.08)" }} />
+          <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>DOGGY</span>
+        </div>
+      </div>
+      {saving && <p className="text-xs" style={{ color: "#FFD700" }}>Guardando...</p>}
     </div>
   );
 }

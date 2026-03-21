@@ -95,8 +95,11 @@ async function sendDoggy(buyerWallet: string, doggyAmount: number, orderId: stri
       .update({ status: "completed", solana_tx_signature: sig })
       .eq("id", orderId);
 
-    // Auto-qualify referral if buyer has $300+ MXN in completed orders
+    // Auto-qualify referral if buyer has $X MXN in completed orders (from bot_config)
     try {
+      const { data: cfg } = await supabase.from("bot_config").select("key, value").eq("key", "referral_min_mxn").single();
+      const minMxn = cfg ? parseFloat(cfg.value) : 300;
+
       const { data: buyerReferral } = await supabase
         .from("referrals")
         .select("id, status")
@@ -112,9 +115,9 @@ async function sendDoggy(buyerWallet: string, doggyAmount: number, orderId: stri
           .eq("status", "completed");
 
         const totalMxn = (buyerOrders || []).reduce((s: number, o: any) => s + (parseFloat(o.mxn_amount) || 0), 0);
-        if (totalMxn >= 300) {
+        if (totalMxn >= minMxn) {
           await supabase.from("referrals").update({ status: "qualified", qualified_at: new Date().toISOString() }).eq("id", buyerReferral.id);
-          console.log(`Referral ${buyerReferral.id} auto-qualified (total: $${totalMxn.toFixed(2)} MXN)`);
+          console.log(`Referral ${buyerReferral.id} auto-qualified ($${totalMxn.toFixed(2)} MXN >= $${minMxn} MXN)`);
         }
       }
     } catch (e) { console.error("Auto-qualify error:", e); }
