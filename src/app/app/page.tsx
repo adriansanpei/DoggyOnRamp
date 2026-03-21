@@ -9,6 +9,7 @@ import dynamic from "next/dynamic";
 const WalletTab = dynamic(() => import("@/components/WalletTab").then((m) => ({ default: m.WalletTab })), { ssr: false });
 const SwapTab = dynamic(() => import("@/components/SwapTab").then((m) => ({ default: m.SwapTab })), { ssr: false });
 const ComprasTab = dynamic(() => import("@/components/ComprasTab").then((m) => ({ default: m.ComprasTab })), { ssr: false });
+const ReferidosTab = dynamic(() => import("@/components/ReferidosTab").then((m) => ({ default: m.ReferidosTab })), { ssr: false });
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -250,6 +251,8 @@ export default function AppPage() {
             <SwapTab />
           ) : activeTab === "compras" ? (
             <ComprasTab onGoToWallet={() => setActiveTab("wallet")} />
+          ) : activeTab === "referidos" ? (
+            <ReferidosTab />
           ) : (
             <div className="text-center">
               <div className="text-6xl mb-4">🚧</div>
