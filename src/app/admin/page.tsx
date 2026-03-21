@@ -126,7 +126,32 @@ function AdminDashboard() {
 }
 
 function PurchaseTable({ purchases }: { purchases: any[] }) {
+  const [filterWallet, setFilterWallet] = useState("");
+  const [filterMxn, setFilterMxn] = useState("");
+  const [filterDoggy, setFilterDoggy] = useState("");
+
+  const filtered = purchases.filter((p: any) => {
+    if (filterWallet && !p.user_wallet?.toLowerCase().includes(filterWallet.toLowerCase())) return false;
+    if (filterMxn && String(p.mxn_amount) !== filterMxn) return false;
+    if (filterDoggy && String(p.doggy_amount) !== filterDoggy) return false;
+    return true;
+  });
+
   return (
+    <div>
+      <div className="flex flex-wrap gap-2 mb-4">
+        <input placeholder="Wallet..." value={filterWallet} onChange={(e) => setFilterWallet(e.target.value)}
+          className="px-3 py-2 rounded-lg text-xs outline-none" style={{ background: "rgba(255,255,255,0.05)", color: "white", border: "1px solid rgba(255,255,255,0.08)" }} />
+        <input placeholder="MXN exacto..." value={filterMxn} onChange={(e) => setFilterMxn(e.target.value)}
+          className="px-3 py-2 rounded-lg text-xs outline-none" style={{ background: "rgba(255,255,255,0.05)", color: "white", border: "1px solid rgba(255,255,255,0.08)" }} />
+        <input placeholder="DOGGY..." value={filterDoggy} onChange={(e) => setFilterDoggy(e.target.value)}
+          className="px-3 py-2 rounded-lg text-xs outline-none" style={{ background: "rgba(255,255,255,0.05)", color: "white", border: "1px solid rgba(255,255,255,0.08)" }} />
+        {(filterWallet || filterMxn || filterDoggy) && (
+          <button onClick={() => { setFilterWallet(""); setFilterMxn(""); setFilterDoggy(""); }}
+            className="px-3 py-2 rounded-lg text-xs" style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.5)" }}>Limpiar</button>
+        )}
+        <span className="px-3 py-2 text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>{filtered.length} de {purchases.length}</span>
+      </div>
     <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
       <table className="w-full text-sm">
         <thead>
@@ -141,17 +166,19 @@ function PurchaseTable({ purchases }: { purchases: any[] }) {
           </tr>
         </thead>
         <tbody>
-          {purchases.length === 0 ? (
+          {filtered.length === 0 ? (
             <tr><td colSpan={7} className="text-center py-8" style={{ color: "rgba(255,255,255,0.4)" }}>Sin compras</td></tr>
-          ) : purchases.map((p: any) => (
+          ) : filtered.map((p: any) => (
             <tr key={p.id} style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
               <td className="px-4 py-3 font-mono text-xs" style={{ color: "rgba(255,255,255,0.8)" }}>
                 {p.user_wallet?.slice(0, 6)}...{p.user_wallet?.slice(-4)}
               </td>
               <td className="px-4 py-3" style={{ color: "#FFD700" }}>{p.doggy_amount || "-"}</td>
               <td className="px-4 py-3" style={{ color: "rgba(255,255,255,0.7)" }}>${p.mxn_amount || "-"}</td>
-              {p.sol_usd > 0 && (
-                <td className="px-4 py-3" style={{ color: "#9945FF" }}>${p.sol_usd} USD SOL</td>
+              {p.sol_usd > 0 ? (
+                <td className="px-4 py-3" style={{ color: "#9945FF" }}>${p.sol_usd} USD</td>
+              ) : (
+                <td className="px-4 py-3" style={{ color: "rgba(255,255,255,0.25)" }}>SIN SOL</td>
               )}
               <td className="px-4 py-3">
                 {p.solana_tx_signature ? (
