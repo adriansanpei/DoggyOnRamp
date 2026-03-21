@@ -122,7 +122,7 @@ function AdminDashboard() {
           <PurchaseTable purchases={purchases} />
         ) : activeTab === "referrals" ? (
           <ReferralTable referrals={referrals} onUpdate={updateReferralStatus} />
-        ) : (
+        ) : activeTab === "claims" ? (
           <ClaimsTable claims={claims} referrals={referrals} purchases={purchases} onUpdate={updateReferralStatus} />
         ) : activeTab === "config" ? (
           <ConfigTab config={config} onUpdated={() => load()} />
