@@ -49,9 +49,9 @@ export async function POST(req: NextRequest) {
     .from("referrals")
     .select("id")
     .eq("referred_wallet", referred_wallet)
-    .single();
+    .limit(1);
 
-  if (existing) {
+  if (existing && existing.length > 0) {
     return NextResponse.json({ message: "already referred" });
   }
 

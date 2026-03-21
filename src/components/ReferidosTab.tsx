@@ -97,6 +97,8 @@ export function ReferidosTab() {
         setIsReferred(true);
         setManualCode("");
         setTimeout(() => setApplyStatus(""), 3000);
+        // Reload data to refresh referrals list
+        if (wallet) loadReferralData(wallet);
       } else {
         setApplyStatus(data.error || "error");
         setTimeout(() => setApplyStatus(""), 3000);
