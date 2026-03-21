@@ -17,7 +17,7 @@ const supabase = createClient(
 
 const tabs = [
   { id: "estadisticas", label: "📊 Estadísticas" },
-  { id: "compras", label: "🛒 Compras" },
+  { id: "compras", label: "🛒 Comprar" },
   { id: "vender", label: "💸 Vender" },
   { id: "wallet", label: "👛 Wallet" },
   { id: "staking", label: "🥩 Staking" },
