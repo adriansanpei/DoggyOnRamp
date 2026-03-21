@@ -268,7 +268,7 @@ export async function classifyTransactions(
         ...classified,
         status: "Completado",
         source: "rpc-fallback" as const,
-      };
+      } as ClassifiedTransaction;
     })
     .filter((r): r is ClassifiedTransaction => r !== null);
 }
