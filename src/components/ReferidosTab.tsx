@@ -189,9 +189,8 @@ export function ReferidosTab() {
         </div>
       )}
 
-      {/* Hero Banner + Stats + List - only for referrers */}
-      {!isReferred ? (
-        <div>
+      {/* Hero Banner + Stats + List */}
+      <div>
       <div className="rounded-2xl p-6 text-center relative overflow-hidden" style={{ background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)" }}>
         <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ background: "radial-gradient(circle at 30% 50%, #FFD700, transparent 60%)" }} />
         <h2 className="text-xl font-bold mb-2" style={{ color: "#FFD700" }}>Gana DOGGY por invitar</h2>
@@ -275,14 +274,8 @@ export function ReferidosTab() {
           </div>
         )}
       </div>
-        </div>
-      ) : (
-        <div className="rounded-xl p-8 text-center" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
-          <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
-            Fuiste referido por alguien. Compra $300+ MXN en DOGGY para calificar la recompensa.
-          </p>
-        </div>
-      )}
+      </div>
+      </div>
     </div>
   );
 }
