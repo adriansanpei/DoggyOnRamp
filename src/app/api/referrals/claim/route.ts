@@ -21,17 +21,21 @@ export async function POST(req: NextRequest) {
   if (error || !referral) return NextResponse.json({ error: "referral not found" }, { status: 400 });
   if (referral.status !== "qualified") return NextResponse.json({ error: "referral not qualified" }, { status: 400 });
 
-  // Check if referred user has >= $300 MXN in completed purchases
-  const { data: purchases } = await supabase
-    .from("purchases")
-    .select("amount_mxn")
-    .eq("buyer_wallet", referred_wallet)
+  // Get min MXN from config
+  const { data: cfg } = await supabase.from("bot_config").select("value").eq("key", "referral_min_mxn").single();
+  const minMxn = cfg ? parseFloat(cfg.value) : 300;
+
+  // Check completed orders from doggy_orders
+  const { data: orders } = await supabase
+    .from("doggy_orders")
+    .select("mxn_amount")
+    .eq("user_wallet", referred_wallet)
     .eq("status", "completed");
 
-  const totalMxn = (purchases || []).reduce((sum: number, p: any) => sum + (parseFloat(p.amount_mxn) || 0), 0);
+  const totalMxn = (orders || []).reduce((sum: number, o: any) => sum + (parseFloat(o.mxn_amount) || 0), 0);
 
-  if (totalMxn < 300) {
-    return NextResponse.json({ error: `Invitado necesita $300 MXN en compras. Actual: $${totalMxn.toFixed(2)} MXN` }, { status: 400 });
+  if (totalMxn < minMxn) {
+    return NextResponse.json({ error: `Invitado necesita $${minMxn} MXN en compras. Actual: $${totalMxn.toFixed(2)} MXN` }, { status: 400 });
   }
 
   return NextResponse.json({ success: true, totalMxn, referral });
