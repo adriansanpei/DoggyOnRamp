@@ -265,11 +265,6 @@ export function EstadisticasTab() {
               <span className="text-sm font-bold" style={{ color: "#f59e0b" }}>{val}</span>
             </div>
           ))}
-          <div className="flex gap-2 flex-wrap mt-2">
-            {["Adopción", "Comunidad", "Demanda", "Menos supply"].map((t) => (
-              <span key={t} className="text-[11px] font-semibold rounded-full px-3 py-1" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#ffffff" }}>{t}</span>
-            ))}
-          </div>
         </div>
       </div>
 
