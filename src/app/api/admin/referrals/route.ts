@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { verifyAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  const denied = verifyAdmin(new Request("")); if (denied) return denied;
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
   const { data, error } = await supabase.from("referrals").select("*").order("created_at", { ascending: false }).limit(100);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -11,6 +13,7 @@ export async function GET() {
 }
 
 export async function PATCH(req: NextRequest) {
+  const denied = verifyAdmin(req); if (denied) return denied;
   const { id, status, note } = await req.json();
   if (!id || !status) return NextResponse.json({ error: "missing fields" }, { status: 400 });
 

@@ -1,21 +1,33 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, createContext, useContext } from "react";
 import { useRouter } from "next/navigation";
+
+const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "";
+const AuthContext = createContext<string | null>(null);
+
+function useAuth() { return useContext(AuthContext); }
+
+function authHeaders(token: string) {
+  return { "Content-Type": "application/json", "Authorization": `Bearer ${token}` };
+}
 
 export default function AdminPage() {
   const [password, setPassword] = useState("");
   const [loggedIn, setLoggedIn] = useState(false);
+  const [token, setToken] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
 
   useEffect(() => {
-    if (localStorage.getItem("doggy_admin") === "true") setLoggedIn(true);
+    const saved = localStorage.getItem("doggy_admin_token");
+    if (saved) { setToken(saved); setLoggedIn(true); }
   }, []);
 
   const handleLogin = () => {
-    if (password === "DOGGY2024admin") {
-      localStorage.setItem("doggy_admin", "true");
+    if (ADMIN_PASSWORD && password === ADMIN_PASSWORD) {
+      localStorage.setItem("doggy_admin_token", password);
+      setToken(password);
       setLoggedIn(true);
     } else {
       setError("Contraseña incorrecta");
@@ -45,7 +57,7 @@ export default function AdminPage() {
     );
   }
 
-  return <AdminDashboard />;
+  return <AuthContext.Provider value={token}><AdminDashboard /></AuthContext.Provider>;
 }
 
 function AdminDashboard() {
@@ -55,27 +67,28 @@ function AdminDashboard() {
   const [claims, setClaims] = useState<any[]>([]);
   const [config, setConfig] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const token = useAuth();
 
   const load = async () => {
     setLoading(true);
     try {
+      const headers = authHeaders(token || "");
       const [pRes, rRes, cRes] = await Promise.all([
-        fetch("/api/admin/purchases"),
-        fetch("/api/admin/referrals"),
-        fetch("/api/admin/claims"),
+        fetch("/api/admin/purchases", { headers }),
+        fetch("/api/admin/referrals", { headers }),
+        fetch("/api/admin/claims", { headers }),
       ]);
+      if (pRes.status === 401 || rRes.status === 401) { localStorage.removeItem("doggy_admin_token"); location.reload(); return; }
       const pData = await pRes.json();
       const rData = await rRes.json();
       const cData = await cRes.json();
       setPurchases(pData.purchases || []);
       setReferrals(rData.referrals || []);
       setClaims(cData.claims || []);
-      const cfgRes = await fetch("/api/admin/config");
+      const cfgRes = await fetch("/api/admin/config", { headers });
       const cfgData = await cfgRes.json();
       setConfig(cfgData.config || {});
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) { console.error(e); }
     setLoading(false);
   };
 
@@ -84,7 +97,7 @@ function AdminDashboard() {
   const updateReferralStatus = async (id: string, status: string, note?: string) => {
     await fetch("/api/admin/referrals", {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(token || ""),
       body: JSON.stringify({ id, status, note }),
     });
     load();
@@ -344,11 +357,12 @@ function ClaimsTable({ claims, referrals, purchases, onUpdate }: { claims: any[]
 
 function ConfigTab({ config, onUpdated }: { config: Record<string, string>; onUpdated: () => void }) {
   const [saving, setSaving] = useState(false);
+  const token = useAuth();
 
   const updateConfig = async (key: string, value: string) => {
     setSaving(true);
     try {
-      await fetch("/api/admin/config", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key, value }) });
+      await fetch("/api/admin/config", { method: "PUT", headers: authHeaders(token || ""), body: JSON.stringify({ key, value }) });
       onUpdated();
     } catch (e) { console.error(e); }
     setSaving(false);
