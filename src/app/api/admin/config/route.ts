@@ -4,8 +4,8 @@ import { verifyAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
-  const denied = verifyAdmin(new Request("")); if (denied) return denied;
+export async function GET(req: NextRequest) {
+  const denied = verifyAdmin(req); if (denied) return denied;
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
   const { data } = await supabase.from("bot_config").select("*");
   const config: Record<string, string> = {};

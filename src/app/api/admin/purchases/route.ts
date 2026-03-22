@@ -5,8 +5,8 @@ import { verifyAdmin } from "@/lib/admin-auth";
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
-export async function GET() {
-  const denied = verifyAdmin(request || new Request("")); if (denied) return denied;
+export async function GET(req: NextRequest) {
+  const denied = verifyAdmin(req); if (denied) return denied;
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 

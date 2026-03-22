@@ -4,8 +4,8 @@ import { verifyAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
-  const denied = verifyAdmin(new Request("")); if (denied) return denied;
+export async function GET(req: NextRequest) {
+  const denied = verifyAdmin(req); if (denied) return denied;
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
   const { data, error } = await supabase.from("referrals").select("*").eq("status", "qualified").order("created_at", { ascending: false });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
