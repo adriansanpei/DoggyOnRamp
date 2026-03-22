@@ -124,11 +124,11 @@ export function EstadisticasTab() {
       {/* HERO */}
       <div className="rounded-2xl p-8 mb-6 text-center relative overflow-hidden">
         <div className="flex items-center justify-center gap-2 mb-5">
-          <span className="rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wider" style={{ background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.25)", color: "#f59e0b" }}>$DOGGY</span>
+          <span className="rounded-full px-5 py-2 text-sm font-bold uppercase tracking-wider" style={{ background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.25)", color: "#f59e0b" }}>$DOGGY</span>
         </div>
 
         <div className="flex justify-center mb-4">
-          <img src="/ques-es-doggy.jpg" alt="DOGGY" className="w-32 h-32 rounded-2xl object-cover" style={{ boxShadow: "0 0 30px rgba(245,158,11,0.2)" }} />
+          <img src="/ques-es-doggy.jpg" alt="DOGGY" className="w-48 h-48 rounded-2xl object-cover" style={{ boxShadow: "0 0 30px rgba(245,158,11,0.2)" }} />
         </div>
 
         <div className={flash ? `text-5xl font-extrabold tracking-tight mb-1 flash-${flash}` : "text-5xl font-extrabold tracking-tight mb-1"}>
@@ -169,9 +169,9 @@ export function EstadisticasTab() {
         <div className="rounded-2xl p-5" style={{ background: "#131620", border: "1px solid rgba(255,255,255,0.07)" }}>
           <div className="flex items-center gap-2.5 mb-4">
             <div className="w-9 h-9 rounded-lg flex items-center justify-center text-base" style={{ background: "rgba(245,158,11,0.15)" }}>🐶</div>
-            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#6b7280" }}>¿Qué es DOGGY?</span>
+            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#ffffff" }}>¿Qué es DOGGY?</span>
           </div>
-          <p className="text-sm leading-relaxed mb-3" style={{ color: "#9ca3af" }}>La primera memecoin mexicana y latina reconocida mundialmente. Corre en Solana, es deflacionaria y está construida por y para la comunidad latina.</p>
+          <p className="text-sm leading-relaxed mb-3" style={{ color: "#ffffff" }}>La primera memecoin mexicana y latina reconocida mundialmente. Corre en Solana, es deflacionaria y está construida por y para la comunidad latina.</p>
           <div className="flex gap-2 flex-wrap">
             {["Memecoin #1 MX", "Solana SPL", "Deflacionaria"].map((t, i) => (
               <span key={t} className="text-[11px] font-semibold rounded-full px-3 py-1" style={{
@@ -187,7 +187,7 @@ export function EstadisticasTab() {
         <div className="rounded-2xl p-5" style={{ background: "#131620", border: "1px solid rgba(255,255,255,0.07)" }}>
           <div className="flex items-center gap-2.5 mb-4">
             <div className="w-9 h-9 rounded-lg flex items-center justify-center text-base" style={{ background: "rgba(245,158,11,0.15)" }}>🏆</div>
-            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#6b7280" }}>All Time High</span>
+            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#ffffff" }}>All Time High</span>
           </div>
           <div className="text-3xl font-extrabold">$0.0048 USD</div>
           <div className="text-sm font-semibold mt-1" style={{ color: "#f59e0b" }}>$0.085 MXN</div>
@@ -206,7 +206,7 @@ export function EstadisticasTab() {
         <div className="rounded-2xl p-5" style={{ background: "#131620", border: "1px solid rgba(255,255,255,0.07)" }}>
           <div className="flex items-center gap-2.5 mb-4">
             <div className="w-9 h-9 rounded-lg flex items-center justify-center text-base" style={{ background: "rgba(34,197,94,0.12)" }}>📉</div>
-            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#6b7280" }}>Supply</span>
+            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#ffffff" }}>Supply</span>
           </div>
           {[
             ["Supply inicial", "1,000,000,000", "#e8e8e8"],
@@ -261,13 +261,13 @@ export function EstadisticasTab() {
             ["Target optimista", "$0.1 USD / $1.8 MXN"],
           ].map(([label, val]) => (
             <div key={label} className="flex justify-between items-center py-2.5 px-3.5 mb-2 rounded-xl" style={{ background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.15)" }}>
-              <span className="text-[11px]" style={{ color: "#9ca3af" }}>{label}</span>
+              <span className="text-[11px]" style={{ color: "#ffffff" }}>{label}</span>
               <span className="text-sm font-bold" style={{ color: "#f59e0b" }}>{val}</span>
             </div>
           ))}
           <div className="flex gap-2 flex-wrap mt-2">
             {["Adopción", "Comunidad", "Demanda", "Menos supply"].map((t) => (
-              <span key={t} className="text-[11px] font-semibold rounded-full px-3 py-1" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#9ca3af" }}>{t}</span>
+              <span key={t} className="text-[11px] font-semibold rounded-full px-3 py-1" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#ffffff" }}>{t}</span>
             ))}
           </div>
         </div>
@@ -306,7 +306,7 @@ export function EstadisticasTab() {
           </div>
           <div className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: "#6b7280" }}>CA — Solana (SPL Token)</div>
           <div className="flex items-center gap-2 py-2.5 px-3 mb-3 rounded-lg" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-            <span className="text-[11px] flex-1 truncate font-mono" style={{ color: "#9ca3af" }}>{CA}</span>
+            <span className="text-[11px] flex-1 truncate font-mono" style={{ color: "#ffffff" }}>{CA}</span>
             <button onClick={copyCA} className="shrink-0 rounded-lg px-3 py-1.5 text-[11px] font-bold cursor-pointer transition-all" style={{ background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.25)", color: "#f59e0b" }}>
               {copied ? "✓ Copiado" : "Copiar"}
             </button>
