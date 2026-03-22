@@ -124,11 +124,11 @@ export function EstadisticasTab() {
       {/* HERO */}
       <div className="rounded-2xl p-8 mb-6 text-center relative overflow-hidden">
         <div className="flex items-center justify-center gap-2 mb-5">
-          <span className="rounded-full px-5 py-2 text-sm font-bold uppercase tracking-wider" style={{ background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.25)", color: "#f59e0b" }}>$DOGGY</span>
+          <span className="rounded-full px-6 py-2.5 text-base font-bold uppercase tracking-wider" style={{ background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.25)", color: "#f59e0b" }}>$DOGGY</span>
         </div>
 
         <div className="flex justify-center mb-4">
-          <img src="/ques-es-doggy.jpg" alt="DOGGY" className="w-48 h-48 rounded-2xl object-cover" style={{ boxShadow: "0 0 30px rgba(245,158,11,0.2)" }} />
+          <img src="/ques-es-doggy.jpg" alt="DOGGY" className="w-56 h-56 rounded-2xl object-cover" style={{ boxShadow: "0 0 30px rgba(245,158,11,0.2)" }} />
         </div>
 
         <div className={flash ? `text-5xl font-extrabold tracking-tight mb-1 flash-${flash}` : "text-5xl font-extrabold tracking-tight mb-1"}>
@@ -255,7 +255,7 @@ export function EstadisticasTab() {
             <div className="w-9 h-9 rounded-lg flex items-center justify-center text-base" style={{ background: "rgba(245,158,11,0.15)" }}>🚀</div>
             <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#6b7280" }}>¿Hasta dónde puede llegar?</span>
           </div>
-          <p className="text-xs mb-3" style={{ color: "#6b7280" }}>Sin límite definido. Depende de:</p>
+          <p className="text-xs mb-3" style={{ color: "#ffffff" }}>Sin límite definido. Depende de:</p>
           {[
             ["Target conservador", "$0.001 USD"],
             ["Target optimista", "$0.1 USD / $1.8 MXN"],
@@ -283,12 +283,12 @@ export function EstadisticasTab() {
             <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#6b7280" }}>¿Dónde tradear?</span>
           </div>
           {[
-            { name: "Jupiter", desc: "Agregador #1 de Solana. Mejor precio.", color: "#1eca9f", abbr: "JUP", href: "https://jup.ag/swap/SOL-BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump" },
-            { name: "Phantom Swap", desc: "Swap directo desde tu wallet.", color: "#9945ff", abbr: "PH", href: "https://phantom.app/" },
-            { name: "Raydium", desc: "DEX con pools de liquidez en Solana.", color: "#3b82f6", abbr: "RAY", href: "https://raydium.io/swap/?inputMint=sol&outputMint=BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump" },
+            { name: "Jupiter", desc: "Agregador #1 de Solana. Mejor precio.", abbr: "JUP", href: "https://jup.ag/swap/SOL-BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump", img: "https://storage.googleapis.com/momentum-engine.appspot.com/dex-logos/jupiter.png" },
+            { name: "Pumpfun", desc: "La plataforma #1 de memecoins en Solana.", abbr: "PF", href: "https://pump.fun/coin/BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump", img: "https://pump.fun/logo.png" },
+            { name: "Raydium", desc: "DEX con pools de liquidez en Solana.", abbr: "RAY", href: "https://raydium.io/swap/?inputMint=sol&outputMint=BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump", img: "https://raydium.io/raydium_logo.png" },
           ].map((d) => (
             <a key={d.name} href={d.href} target="_blank" rel="noopener" className="flex items-center gap-3 py-3 px-3.5 mb-2 rounded-xl transition-all cursor-pointer" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-extrabold text-white shrink-0" style={{ background: d.color }}>{d.abbr}</div>
+              <img src={d.img} alt={d.name} className="w-8 h-8 rounded-lg object-cover shrink-0" onerror={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
               <div className="flex-1">
                 <div className="text-sm font-semibold" style={{ color: "#e8e8e8" }}>{d.name}</div>
                 <div className="text-[11px]" style={{ color: "#6b7280" }}>{d.desc}</div>
