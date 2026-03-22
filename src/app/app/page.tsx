@@ -10,6 +10,7 @@ const WalletTab = dynamic(() => import("@/components/WalletTab").then((m) => ({ 
 const SwapTab = dynamic(() => import("@/components/SwapTab").then((m) => ({ default: m.SwapTab })), { ssr: false });
 const ComprasTab = dynamic(() => import("@/components/ComprasTab").then((m) => ({ default: m.ComprasTab })), { ssr: false });
 const ReferidosTab = dynamic(() => import("@/components/ReferidosTab").then((m) => ({ default: m.ReferidosTab })), { ssr: false });
+const EstadisticasTab = dynamic(() => import("@/components/EstadisticasTab").then((m) => ({ default: m.EstadisticasTab })), { ssr: false });
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -252,16 +253,9 @@ export default function AppPage() {
             <ComprasTab onGoToWallet={() => setActiveTab("wallet")} />
           ) : activeTab === "referidos" ? (
             <ReferidosTab />
-          ) : (
-            <div className="text-center">
-              <div className="text-6xl mb-4">🚧</div>
-              <h2 className="text-2xl font-bold mb-2" style={{ background: "linear-gradient(90deg, #FFD700, #FFA500)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                {tabs.find((t) => t.id === activeTab)?.label}
-              </h2>
-              <p className="text-gray-500 text-lg">En construcción</p>
-              <p className="text-gray-600 text-sm mt-2">Próximamente disponible</p>
-            </div>
-          )}
+          ) : activeTab === "estadisticas" ? (
+            <EstadisticasTab />
+          ) : null}
         </main>
       )}
       </div>
