@@ -122,15 +122,13 @@ export function EstadisticasTab() {
       `}</style>
 
       {/* HERO */}
-      <div className="rounded-2xl p-8 mb-6 text-center relative overflow-hidden" style={{ background: "linear-gradient(180deg,#0d1018,#080a10)", border: "1px solid rgba(245,158,11,0.13)" }}>
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-32 rounded-full pointer-events-none" style={{ background: "radial-gradient(ellipse,rgba(245,158,11,0.08),transparent 70%)" }} />
-
+      <div className="rounded-2xl p-8 mb-6 text-center relative overflow-hidden">
         <div className="flex items-center justify-center gap-2 mb-5">
-          <span className="rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider" style={{ background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.25)", color: "#f59e0b" }}>$DOGGY</span>
+          <span className="rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wider" style={{ background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.25)", color: "#f59e0b" }}>$DOGGY</span>
         </div>
 
         <div className="flex justify-center mb-4">
-          <img src="/ques-es-doggy.jpg" alt="DOGGY" className="w-24 h-24 rounded-2xl object-cover" style={{ boxShadow: "0 0 30px rgba(245,158,11,0.2)" }} />
+          <img src="/ques-es-doggy.jpg" alt="DOGGY" className="w-32 h-32 rounded-2xl object-cover" style={{ boxShadow: "0 0 30px rgba(245,158,11,0.2)" }} />
         </div>
 
         <div className={flash ? `text-5xl font-extrabold tracking-tight mb-1 flash-${flash}` : "text-5xl font-extrabold tracking-tight mb-1"}>
