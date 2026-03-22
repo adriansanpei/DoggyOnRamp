@@ -127,7 +127,10 @@ export function EstadisticasTab() {
 
         <div className="flex items-center justify-center gap-2 mb-5">
           <span className="rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider" style={{ background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.25)", color: "#f59e0b" }}>$DOGGY</span>
-          <span className="rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider" style={{ background: "rgba(153,69,255,0.12)", border: "1px solid rgba(153,69,255,0.3)", color: "#9945ff" }}>Solana</span>
+        </div>
+
+        <div className="flex justify-center mb-4">
+          <img src="/ques-es-doggy.jpg" alt="DOGGY" className="w-24 h-24 rounded-2xl object-cover" style={{ boxShadow: "0 0 30px rgba(245,158,11,0.2)" }} />
         </div>
 
         <div className={flash ? `text-5xl font-extrabold tracking-tight mb-1 flash-${flash}` : "text-5xl font-extrabold tracking-tight mb-1"}>
@@ -140,7 +143,6 @@ export function EstadisticasTab() {
         <div className="flex justify-center gap-0 flex-wrap mb-5">
           {[
             { label: "Cambio 24h", val: c24 },
-            { label: "Cambio 7d", val: c7d },
             { label: "Market Cap", val: mcap, raw: true },
             { label: "Vol 24h", val: vol, raw: true },
           ].map((m, i) => (
