@@ -280,7 +280,7 @@ export function EstadisticasTab() {
         <div className="rounded-2xl p-5" style={{ background: "#131620", border: "1px solid rgba(255,255,255,0.07)" }}>
           <div className="flex items-center gap-2.5 mb-4">
             <div className="w-9 h-9 rounded-lg flex items-center justify-center text-base" style={{ background: "rgba(153,69,255,0.12)" }}>⚡</div>
-            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#6b7280" }}>¿Dónde tradear?</span>
+            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#ffffff" }}>¿Dónde tradear?</span>
           </div>
           {[
             { name: "Jupiter", desc: "Agregador #1 de Solana. Mejor precio.", abbr: "JUP", href: "https://jup.ag/swap/SOL-BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump", img: "https://storage.googleapis.com/momentum-engine.appspot.com/dex-logos/jupiter.png" },
