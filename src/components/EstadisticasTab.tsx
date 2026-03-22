@@ -283,9 +283,9 @@ export function EstadisticasTab() {
             <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#ffffff" }}>¿Dónde tradear?</span>
           </div>
           {[
-            { name: "Jupiter", desc: "Agregador #1 de Solana. Mejor precio.", abbr: "JUP", href: "https://jup.ag/swap/SOL-BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump", img: "https://storage.googleapis.com/momentum-engine.appspot.com/dex-logos/jupiter.png" },
-            { name: "Pumpfun", desc: "La plataforma #1 de memecoins en Solana.", abbr: "PF", href: "https://pump.fun/coin/BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump", img: "https://pump.fun/logo.png" },
-            { name: "Raydium", desc: "DEX con pools de liquidez en Solana.", abbr: "RAY", href: "https://raydium.io/swap/?inputMint=sol&outputMint=BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump", img: "https://raydium.io/raydium_logo.png" },
+            { name: "Jupiter", desc: "Agregador #1 de Solana. Mejor precio.", abbr: "JUP", href: "https://jup.ag/swap/SOL-BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump", img: "/images/JUPITER.png" },
+            { name: "Pumpfun", desc: "La plataforma #1 de memecoins en Solana.", abbr: "PF", href: "https://pump.fun/coin/BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump", img: "/images/PUMPFUN.png" },
+            { name: "Raydium", desc: "DEX con pools de liquidez en Solana.", abbr: "RAY", href: "https://raydium.io/swap/?inputMint=sol&outputMint=BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump", img: "/images/RAYDIUM.png" },
           ].map((d) => (
             <a key={d.name} href={d.href} target="_blank" rel="noopener" className="flex items-center gap-3 py-3 px-3.5 mb-2 rounded-xl transition-all cursor-pointer" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
               <img src={d.img} alt={d.name} className="w-8 h-8 rounded-lg object-cover shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
