@@ -163,7 +163,7 @@ export function EstadisticasTab() {
       </div>
 
       {/* SECTION: Sobre DOGGY */}
-      <p className="text-[10px] font-bold uppercase tracking-wider pb-3 mb-4" style={{ color: "#6b7280", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>Sobre DOGGY</p>
+      <p className="text-[10px] font-bold uppercase tracking-wider pb-3 mb-4" style={{ color: "#ffffff", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>Sobre DOGGY</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         {/* Qué es */}
         <div className="rounded-2xl p-5" style={{ background: "#131620", border: "1px solid rgba(255,255,255,0.07)" }}>
@@ -200,7 +200,7 @@ export function EstadisticasTab() {
       </div>
 
       {/* SECTION: Tokenomics */}
-      <p className="text-[10px] font-bold uppercase tracking-wider pb-3 mb-4" style={{ color: "#6b7280", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>Tokenomics</p>
+      <p className="text-[10px] font-bold uppercase tracking-wider pb-3 mb-4" style={{ color: "#ffffff", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>Tokenomics</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         {/* Supply */}
         <div className="rounded-2xl p-5" style={{ background: "#131620", border: "1px solid rgba(255,255,255,0.07)" }}>
@@ -228,7 +228,7 @@ export function EstadisticasTab() {
         <div className="rounded-2xl p-5" style={{ background: "#131620", border: "1px solid rgba(255,255,255,0.07)" }}>
           <div className="flex items-center gap-2.5 mb-4">
             <div className="w-9 h-9 rounded-lg flex items-center justify-center text-base" style={{ background: "rgba(245,158,11,0.15)" }}>👥</div>
-            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#6b7280" }}>Holders</span>
+            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#ffffff" }}>Holders</span>
           </div>
           <div className="text-3xl font-extrabold mb-3">1,412 <span className="text-sm font-normal" style={{ color: "#6b7280" }}>holders</span></div>
           <div ref={barsRef}>
@@ -253,7 +253,7 @@ export function EstadisticasTab() {
         <div className="rounded-2xl p-5 sm:col-span-2 lg:col-span-1" style={{ background: "#131620", border: "1px solid rgba(255,255,255,0.07)" }}>
           <div className="flex items-center gap-2.5 mb-4">
             <div className="w-9 h-9 rounded-lg flex items-center justify-center text-base" style={{ background: "rgba(245,158,11,0.15)" }}>🚀</div>
-            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#6b7280" }}>¿Hasta dónde puede llegar?</span>
+            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#ffffff" }}>¿Hasta dónde puede llegar?</span>
           </div>
           <p className="text-xs mb-3" style={{ color: "#ffffff" }}>Sin límite definido. Depende de:</p>
           {[
@@ -269,7 +269,7 @@ export function EstadisticasTab() {
       </div>
 
       {/* SECTION: Trading */}
-      <p className="text-[10px] font-bold uppercase tracking-wider pb-3 mb-4" style={{ color: "#6b7280", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>Trading y Ecosistema</p>
+      <p className="text-[10px] font-bold uppercase tracking-wider pb-3 mb-4" style={{ color: "#ffffff", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>Trading y Ecosistema</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         {/* Dónde tradear */}
         <div className="rounded-2xl p-5" style={{ background: "#131620", border: "1px solid rgba(255,255,255,0.07)" }}>
@@ -297,7 +297,7 @@ export function EstadisticasTab() {
         <div className="rounded-2xl p-5" style={{ background: "#131620", border: "1px solid rgba(255,255,255,0.07)" }}>
           <div className="flex items-center gap-2.5 mb-4">
             <div className="w-9 h-9 rounded-lg flex items-center justify-center text-base" style={{ background: "rgba(59,130,246,0.12)" }}>📋</div>
-            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#6b7280" }}>Contract Address</span>
+            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#ffffff" }}>Contract Address</span>
           </div>
           <div className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: "#6b7280" }}>CA — Solana (SPL Token)</div>
           <div className="flex items-center gap-2 py-2.5 px-3 mb-3 rounded-lg" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
