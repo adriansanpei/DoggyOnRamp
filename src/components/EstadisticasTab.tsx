@@ -232,16 +232,16 @@ export function EstadisticasTab() {
           </div>
           <div className="text-3xl font-extrabold mb-3">1,412 <span className="text-sm font-normal" style={{ color: "#6b7280" }}>holders</span></div>
           <div ref={barsRef}>
-            {[
+            {([
               ["4h", 35, true],
               ["12h", 35, true],
               ["1d", 28, false],
               ["7d", 100, true],
-            ].map(([label, w, up]) => (
-              <div key={label} className="flex items-center gap-2.5 mb-2">
-                <span className="text-[11px] w-7 shrink-0" style={{ color: "#6b7280" }}>{label}</span>
+            ] as const).map(([label, w, up]) => (
+              <div key={label as string} className="flex items-center gap-2.5 mb-2">
+                <span className="text-[11px] w-7 shrink-0" style={{ color: "#6b7280" }}>{label as string}</span>
                 <div className="flex-1 h-[5px] rounded" style={{ background: "rgba(255,255,255,0.06)" }}>
-                  <div className="bar-fill-inner" data-w={w} style={{ background: up ? "#22c55e" : "#ef4444" }} />
+                  <div className="bar-fill-inner" data-w={w as number} style={{ background: up ? "#22c55e" : "#ef4444" }} />
                 </div>
                 <span className="text-[11px] font-bold w-12 text-right" style={{ color: up ? "#22c55e" : "#ef4444" }}>{up ? "+" : "-"}{w === 100 ? "2.14" : "0.07"}%</span>
               </div>
