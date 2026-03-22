@@ -288,7 +288,7 @@ export function EstadisticasTab() {
             { name: "Raydium", desc: "DEX con pools de liquidez en Solana.", abbr: "RAY", href: "https://raydium.io/swap/?inputMint=sol&outputMint=BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump", img: "https://raydium.io/raydium_logo.png" },
           ].map((d) => (
             <a key={d.name} href={d.href} target="_blank" rel="noopener" className="flex items-center gap-3 py-3 px-3.5 mb-2 rounded-xl transition-all cursor-pointer" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
-              <img src={d.img} alt={d.name} className="w-8 h-8 rounded-lg object-cover shrink-0" onerror={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              <img src={d.img} alt={d.name} className="w-8 h-8 rounded-lg object-cover shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
               <div className="flex-1">
                 <div className="text-sm font-semibold" style={{ color: "#e8e8e8" }}>{d.name}</div>
                 <div className="text-[11px]" style={{ color: "#6b7280" }}>{d.desc}</div>
