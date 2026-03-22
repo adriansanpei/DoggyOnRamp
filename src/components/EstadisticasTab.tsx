@@ -312,7 +312,7 @@ export function EstadisticasTab() {
         </div>
       </div>
 
-      <p className="text-center text-[11px] pb-4" style={{ color: "#6b7280" }}>Datos de precio en tiempo real via DexScreener · $DOGGY es una memecoin, no consejo financiero</p>
+
     </div>
   );
 }
