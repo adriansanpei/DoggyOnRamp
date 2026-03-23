@@ -29,7 +29,20 @@ export async function GET() {
 
     if (!price) throw new Error("No price source available");
 
-    return NextResponse.json({ usdcMxn: price });
+    // SOL/USD price
+    let solUsd = null;
+    try {
+      const res = await fetch("https://api.binance.us/api/v3/ticker/price?symbol=SOLUSDC");
+      if (res.ok) { const data = await res.json(); solUsd = parseFloat(data.price); }
+    } catch {}
+    if (!solUsd) {
+      try {
+        const res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd");
+        if (res.ok) { const data = await res.json(); solUsd = data.solana?.usd; }
+      } catch {}
+    }
+
+    return NextResponse.json({ usdcMxn: price, solUsd });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

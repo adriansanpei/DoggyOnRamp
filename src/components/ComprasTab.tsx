@@ -6,6 +6,12 @@ import { useParticleAuth } from "@particle-network/connectkit";
 const DOGGY_MINT = "BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump";
 const DOGGY_LOGO = "/images/doggy-logo.jpg";
 const MXN_LOGO = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="#006847"/><text x="20" y="26" text-anchor="middle" fill="white" font-size="16" font-weight="bold">$</text></svg>');
+const SOL_LOGO = "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png";
+
+const OUTPUT_TOKENS = [
+  { symbol: "DOGGY", name: "DOGGY Token", logo: DOGGY_LOGO, decimals: 6 },
+  { symbol: "SOL", name: "Solana", logo: SOL_LOGO, decimals: 9 },
+];
 
 const CLABE = process.env.NEXT_PUBLIC_CLABE || "";
 const BENEFICIARIO = process.env.NEXT_PUBLIC_BENEFICIARIO || "DOGGY";
@@ -16,6 +22,9 @@ export function ComprasTab({ onGoToWallet }: { onGoToWallet?: () => void }) {
   const [mxnAmount, setMxnAmount] = useState("");
   const [usdcMxn, setUsdcMxn] = useState<number | null>(null);
   const [doggyPriceUsd, setDoggyPriceUsd] = useState<number | null>(null);
+  const [solPriceUsd, setSolPriceUsd] = useState<number | null>(null);
+  const [outputToken, setOutputToken] = useState("DOGGY");
+  const [tokenDropdownOpen, setTokenDropdownOpen] = useState(false);
   const [doggyAmount, setDoggyAmount] = useState<string | null>(null);
   const [usdcAmount, setUsdcAmount] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -87,16 +96,37 @@ export function ComprasTab({ onGoToWallet }: { onGoToWallet?: () => void }) {
     return () => clearInterval(iv);
   }, []);
 
-  // Calculate DOGGY amount
+  // Fetch SOL price
   useEffect(() => {
-    if (!mxnAmount || !usdcMxn || !doggyPriceUsd) { setDoggyAmount(null); setUsdcAmount(null); return; }
+    const fetchSolPrice = async () => {
+      try {
+        const res = await fetch("/api/prices");
+        const data = await res.json();
+        if (data.solUsd) setSolPriceUsd(data.solUsd);
+      } catch {}
+    };
+    fetchSolPrice();
+    const iv = setInterval(fetchSolPrice, 30000);
+    return () => clearInterval(iv);
+  }, []);
+
+  // Calculate output amount
+  useEffect(() => {
+    if (!mxnAmount || !usdcMxn) { setDoggyAmount(null); setUsdcAmount(null); return; }
     const mxn = parseFloat(mxnAmount);
     if (mxn <= 0) { setDoggyAmount(null); setUsdcAmount(null); return; }
     const usdc = mxn / usdcMxn;
-    const doggy = usdc / doggyPriceUsd;
     setUsdcAmount(usdc.toFixed(2));
-    setDoggyAmount(doggy.toLocaleString(undefined, { maximumFractionDigits: 2 }));
-  }, [mxnAmount, usdcMxn, doggyPriceUsd]);
+    if (outputToken === "DOGGY") {
+      if (!doggyPriceUsd) { setDoggyAmount(null); return; }
+      const doggy = usdc / doggyPriceUsd;
+      setDoggyAmount(doggy.toLocaleString(undefined, { maximumFractionDigits: 2 }));
+    } else if (outputToken === "SOL") {
+      if (!solPriceUsd) { setDoggyAmount(null); return; }
+      const sol = usdc / solPriceUsd;
+      setDoggyAmount(sol.toFixed(4));
+    }
+  }, [mxnAmount, usdcMxn, doggyPriceUsd, solPriceUsd, outputToken]);
 
   // Timer countdown
   useEffect(() => {
@@ -139,6 +169,7 @@ export function ComprasTab({ onGoToWallet }: { onGoToWallet?: () => void }) {
           mxnAmount: parseFloat(mxnAmount),
           userWallet,
           solOption: solOption !== "none" ? parseFloat(solOption) : 0,
+          tokenType: outputToken.toLowerCase(),
         }),
       });
       const data = await res.json();
@@ -420,7 +451,7 @@ export function ComprasTab({ onGoToWallet }: { onGoToWallet?: () => void }) {
       <div className="rounded-2xl p-5 space-y-4" style={{ background: "#13141f", border: "1px solid rgba(255,255,255,0.06)" }}>
 
         <div className="flex items-center justify-between">
-          <h2 className="text-white font-semibold">Comprar DOGGY</h2>
+          <h2 className="text-white font-semibold">Comprar {outputToken}</h2>
           {usdcMxn && <span className="text-gray-500 text-[11px]">USDC: ${usdcMxn.toFixed(2)} MXN</span>}
         </div>
 
@@ -489,43 +520,64 @@ export function ComprasTab({ onGoToWallet }: { onGoToWallet?: () => void }) {
         <div className="flex items-center justify-center gap-2 text-gray-500 text-xs">
           <span>≈ {(() => {
             if (!usdcMxn || !mxnAmount) return "—";
-            const mxnForDoggy = solOption !== "none" ? parseFloat(mxnAmount) - parseFloat(solOption) * usdcMxn : parseFloat(mxnAmount);
-            return (mxnForDoggy / usdcMxn).toFixed(2);
+            const mxnForToken = solOption !== "none" ? parseFloat(mxnAmount) - parseFloat(solOption) * usdcMxn : parseFloat(mxnAmount);
+            return (mxnForToken / usdcMxn).toFixed(2);
           })()} USDC</span>
           <span>→</span>
-          <span>≈ {(() => {
-            if (!usdcMxn || !mxnAmount || !doggyPriceUsd) return "—";
-            const mxnForDoggy = solOption !== "none" ? parseFloat(mxnAmount) - parseFloat(solOption) * usdcMxn : parseFloat(mxnAmount);
-            const usdc = mxnForDoggy / usdcMxn;
-            const doggy = usdc / doggyPriceUsd;
-            return doggy > 1000000 ? (doggy / 1000000).toFixed(1) + "M" : doggy > 1000 ? Math.floor(doggy).toLocaleString() : doggy.toFixed(2);
-          })()} DOGGY{solOption !== "none" ? ` + ${solOption} USD en SOL` : ""}</span>
+          <span>≈ {!mxnAmount || !doggyAmount ? "—" : `${doggyAmount} ${outputToken}`}{solOption !== "none" ? ` + ${solOption} USD en SOL` : ""}</span>
         </div>
 
-        {/* DOGGY Output */}
+        {/* Output Token (DOGGY or SOL) */}
         <div className="rounded-xl p-4" style={{ background: "#1a1b2e", border: "1px solid rgba(255,255,255,0.04)" }}>
           <div className="flex items-center justify-between mb-3">
             <span className="text-gray-400 text-xs font-medium">Recibes</span>
-            {doggyPriceUsd && <span className="text-gray-600 text-[11px]">1 DOGGY ≈ ${doggyPriceUsd.toFixed(6)} USDC</span>}
+            {outputToken === "DOGGY" && doggyPriceUsd && <span className="text-gray-600 text-[11px]">1 DOGGY ≈ ${doggyPriceUsd.toFixed(6)} USDC</span>}
+            {outputToken === "SOL" && solPriceUsd && <span className="text-gray-600 text-[11px]">1 SOL ≈ ${solPriceUsd.toFixed(2)} USDC</span>}
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl shrink-0" style={{ background: "#252538" }}>
-              <img src={DOGGY_LOGO} alt="" className="w-5 h-5 rounded-full object-cover" />
-              <span className="text-white text-sm font-medium">DOGGY</span>
+            {/* Token selector dropdown */}
+            <div className="relative">
+              <button onClick={() => setTokenDropdownOpen(!tokenDropdownOpen)}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl shrink-0 transition-colors hover:brightness-110"
+                style={{ background: "#252538" }}>
+                <img src={OUTPUT_TOKENS.find(t => t.symbol === outputToken)?.logo} alt="" className="w-5 h-5 rounded-full object-cover" />
+                <span className="text-white text-sm font-medium">{outputToken}</span>
+                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" className={`opacity-40 transition-transform ${tokenDropdownOpen ? "rotate-180" : ""}`}>
+                  <path d="M1 1L5 5L9 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+              {tokenDropdownOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setTokenDropdownOpen(false)} />
+                  <div className="absolute top-full left-0 mt-2 w-48 rounded-xl overflow-hidden z-50 py-1"
+                    style={{ background: "#252538", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+                    {OUTPUT_TOKENS.map(t => (
+                      <button key={t.symbol} onClick={() => { setOutputToken(t.symbol); setTokenDropdownOpen(false); setDoggyAmount(null); }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors"
+                        style={{ background: outputToken === t.symbol ? "rgba(0,200,150,0.08)" : "transparent" }}
+                        onMouseEnter={e => (e.target as HTMLElement).style.background = "rgba(255,255,255,0.04)"}
+                        onMouseLeave={e => (e.target as HTMLElement).style.background = outputToken === t.symbol ? "rgba(0,200,150,0.08)" : "transparent"}>
+                        <img src={t.logo} alt="" className="w-7 h-7 rounded-full object-cover" />
+                        <div>
+                          <p className="text-white text-sm font-medium">{t.symbol}</p>
+                          <p className="text-gray-500 text-[11px]">{t.name}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
             <div className="flex-1 text-right">
               <p className="text-white text-2xl font-light">
-                {!mxnAmount || !doggyAmount ? <span className="text-gray-600">0</span> :
-                  solOption !== "none" && usdcMxn && doggyPriceUsd
-                    ? (() => { const m = parseFloat(mxnAmount) - parseFloat(solOption) * usdcMxn; return (m / usdcMxn / doggyPriceUsd).toFixed(2); })()
-                    : doggyAmount}
+                {!mxnAmount || !doggyAmount ? <span className="text-gray-600">0</span> : doggyAmount}
               </p>
             </div>
           </div>
-          {solOption !== "none" && (
+          {outputToken === "DOGGY" && solOption !== "none" && (
             <div className="flex items-center gap-3 mt-2">
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl shrink-0" style={{ background: "#252538" }}>
-                <span className="text-sm"><img src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png" alt="" className="w-5 h-5 rounded-full inline-block -mt-0.5" /></span>
+                <span className="text-sm"><img src={SOL_LOGO} alt="" className="w-5 h-5 rounded-full inline-block -mt-0.5" /></span>
                 <span className="text-white text-sm font-medium">SOL</span>
               </div>
               <div className="flex-1 text-right">
@@ -538,10 +590,11 @@ export function ComprasTab({ onGoToWallet }: { onGoToWallet?: () => void }) {
         </div>
 
         {/* Price breakdown */}
-        {mxnAmount && usdcMxn && doggyPriceUsd && doggyAmount && (
+        {mxnAmount && usdcMxn && ((outputToken === "DOGGY" && doggyPriceUsd) || (outputToken === "SOL" && solPriceUsd)) && doggyAmount && (
           <div className="px-1 text-xs text-gray-500 space-y-1">
             <div className="flex justify-between"><span>Tasa USDC/MXN</span><span>${usdcMxn.toFixed(2)}</span></div>
-            <div className="flex justify-between"><span>Precio DOGGY/USDC</span><span>{doggyPriceUsd.toFixed(6)}</span></div>
+            {outputToken === "DOGGY" && <div className="flex justify-between"><span>Precio DOGGY/USDC</span><span>{doggyPriceUsd!.toFixed(6)}</span></div>}
+            {outputToken === "SOL" && <div className="flex justify-between"><span>Precio SOL/USDC</span><span>${solPriceUsd!.toFixed(2)}</span></div>}
           </div>
         )}
 

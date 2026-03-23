@@ -5,12 +5,14 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const JUP_BASE = "https://public.jupiterapi.com";
 const DOGGY_MINT = "BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump";
+const SOL_MINT = "So11111111111111111111111111111111111111112";
 
 interface CreateOrderBody {
   mxnAmount: number;
   userWallet: string;
   particleUserId?: string;
-  solOption?: number; // 0 = none, 0.50 or 3 (USD)
+  solOption?: number;
+  tokenType?: string; // "doggy" or "sol"
 }
 
 async function getUsdcMxnRate(): Promise<number> {
@@ -40,10 +42,22 @@ async function getDoggyQuote(usdcAmount: number): Promise<number> {
   return Number(data.outAmount) / 1_000_000;
 }
 
+async function getSolPriceUsd(): Promise<number> {
+  try {
+    const res = await fetch("https://api.binance.us/api/v3/ticker/price?symbol=SOLUSDC");
+    if (res.ok) { const data = await res.json(); return parseFloat(data.price); }
+  } catch {}
+  try {
+    const res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd");
+    if (res.ok) { const data = await res.json(); return data.solana?.usd; }
+  } catch {}
+  throw new Error("No se pudo obtener el precio SOL/USD");
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body: CreateOrderBody = await req.json();
-    const { mxnAmount, userWallet, particleUserId, solOption = 0 } = body;
+    const { mxnAmount, userWallet, particleUserId, solOption = 0, tokenType = "doggy" } = body;
 
     if (!mxnAmount || !userWallet) {
       return NextResponse.json({ error: "Faltan campos" }, { status: 400 });
@@ -54,17 +68,27 @@ export async function POST(req: NextRequest) {
 
     const usdcMxnRate = await getUsdcMxnRate();
 
-    // Calculate SOL for gas if requested
-    const solUsd = solOption; // 0, 0.50 or 3 USD
+    // Calculate SOL for gas if requested (only when buying DOGGY)
+    const solUsd = tokenType === "doggy" ? solOption : 0;
     const solMxn = solUsd * usdcMxnRate;
-    const mxnForDoggy = mxnAmount - solMxn;
+    const mxnForToken = mxnAmount - solMxn;
 
-    if (mxnForDoggy < 10) {
-      return NextResponse.json({ error: `Monto insuficiente para DOGGY después de SOL. Necesitas $10+ MXN restantes.` }, { status: 400 });
+    if (mxnForToken < 10) {
+      return NextResponse.json({ error: `Monto insuficiente. Necesitas $10+ MXN restantes.` }, { status: 400 });
     }
 
-    const usdcAmount = mxnForDoggy / usdcMxnRate;
-    const doggyAmount = await getDoggyQuote(usdcAmount);
+    const usdcAmount = mxnForToken / usdcMxnRate;
+    let tokenAmount: number;
+    let tokenSymbol: string;
+
+    if (tokenType === "sol") {
+      const solPrice = await getSolPriceUsd();
+      tokenAmount = usdcAmount / solPrice;
+      tokenSymbol = "SOL";
+    } else {
+      tokenAmount = await getDoggyQuote(usdcAmount);
+      tokenSymbol = "DOGGY";
+    }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -73,13 +97,14 @@ export async function POST(req: NextRequest) {
       .insert({
         particle_user_id: particleUserId || null,
         user_wallet: userWallet,
-        mxn_amount: mxnForDoggy,
-        doggy_amount: doggyAmount,
+        mxn_amount: mxnForToken,
+        doggy_amount: tokenAmount,
         usdc_amount: usdcAmount,
         usdc_mxn_rate: usdcMxnRate,
-        exact_amount: mxnAmount, // Full amount user pays via SPEI
+        exact_amount: mxnAmount,
         sol_usd: solUsd,
         sol_mxn: solMxn,
+        token_type: tokenType,
         status: "pending",
       })
       .select()
