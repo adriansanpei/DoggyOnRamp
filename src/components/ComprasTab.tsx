@@ -287,10 +287,10 @@ export function ComprasTab({ onGoToWallet }: { onGoToWallet?: () => void }) {
             </h3>
 
             <p style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.75)", lineHeight: 1.5, marginBottom: 6 }}>
-              Pronto verás los DOGGYs reflejados<br />en tu panel de Wallet
+              Pronto verás tus {order?.token_type === "sol" ? "SOL" : "DOGGYs"} reflejados<br />en tu panel de Wallet
             </p>
             <p style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", marginBottom: 24 }}>
-              {order?.solana_tx_signature ? "Tus DOGGYs ya están en camino 🚀" : "Estamos enviando tus DOGGYs… aguanta tantito"}
+              {order?.solana_tx_signature ? `Tus ${order?.token_type === "sol" ? "SOL" : "DOGGYs"} ya están en camino 🚀` : `Estamos enviando tus ${order?.token_type === "sol" ? "SOL" : "DOGGYs"}… aguanta tantito`}
             </p>
 
             {/* Divider */}
@@ -303,7 +303,7 @@ export function ComprasTab({ onGoToWallet }: { onGoToWallet?: () => void }) {
                 textShadow: "0 0 12px rgba(245,158,11,0.5), 0 0 32px rgba(245,158,11,0.2)",
                 fontFamily: "'Sora', sans-serif",
               }}>
-                +{countValue.toLocaleString("es-MX")} DOGGY
+                +{countValue.toLocaleString("es-MX")} {order?.token_type === "sol" ? "SOL" : "DOGGY"}
               </span>
             </div>
 
