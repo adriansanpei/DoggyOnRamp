@@ -5,7 +5,7 @@ const advantages = [
     id: "01",
     title: "Entrada mínima",
     description:
-      "Desde $50 pesos ya eres holder DOGGY",
+      "Desde $50 MXN puedes comprar DOGGY o SOL",
     subtitle: "No necesitas una lana. Con lo que cuesta una caguama ya tienes tu lugar en el cohete",
     color1: "#00d4ff",
     color2: "#0066ff",
@@ -26,7 +26,7 @@ const advantages = [
     title: "Referidos",
     description:
       "Invita y gana",
-    subtitle: "Por cada amigo que entre con tu link, te llevas el 20% de lo que invierta. Automático, directo a tu wallet.",
+    subtitle: "Por cada amigo que entre con tu link y haga una compra, te llevas una bagcita de DOGGY. Automático, directo a tu wallet.",
     color1: "#7c4dff",
     color2: "#aa00ff",
     image: "/referidos.png",
