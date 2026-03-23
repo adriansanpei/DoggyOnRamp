@@ -404,7 +404,7 @@ export function ComprasTab({ onGoToWallet }: { onGoToWallet?: () => void }) {
               <img src={DOGGY_LOGO} alt="" className="w-8 h-8 rounded-full object-cover" />
               <div className="flex-1">
                 <p className="text-gray-400 text-xs">Recibirás</p>
-                <p className="text-white text-xl font-bold">{Number(order.doggy_amount).toLocaleString(undefined, { maximumFractionDigits: 2 })} DOGGY</p>
+                <p className="text-white text-xl font-bold">{Number(order.doggy_amount).toLocaleString(undefined, { maximumFractionDigits: 2 })} {order.token_type === "sol" ? "SOL" : "DOGGY"}</p>
               </div>
             </div>
           </div>
@@ -642,7 +642,7 @@ export function ComprasTab({ onGoToWallet }: { onGoToWallet?: () => void }) {
                       </span>
                       <span className="text-gray-600 text-[10px]">#{o.id.slice(-6).toUpperCase()}</span>
                     </div>
-                    <p className="text-white text-xs mt-1">${o.mxn_amount} MXN → {Number(o.doggy_amount).toLocaleString()} DOGGY</p>
+                    <p className="text-white text-xs mt-1">${o.mxn_amount} MXN → {Number(o.doggy_amount).toLocaleString()} {o.token_type === "sol" ? "SOL" : "DOGGY"}</p>
                     <p className="text-gray-600 text-[10px]">{new Date(o.created_at).toLocaleDateString("es-MX", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</p>
                   </div>
                   {o.status === "completed" && o.solana_tx_signature && (
