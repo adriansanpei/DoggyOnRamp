@@ -196,7 +196,7 @@ export function ComprasTab({ onGoToWallet }: { onGoToWallet?: () => void }) {
   useEffect(() => {
     if (step !== "success" || !order) return;
     setShowConfetti(true);
-    const target = Math.floor(Number(order.doggy_amount));
+    const target = Number(order.doggy_amount);
 
     // Count-up
     const duration = 1400;
