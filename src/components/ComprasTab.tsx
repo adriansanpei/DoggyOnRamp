@@ -401,7 +401,7 @@ export function ComprasTab({ onGoToWallet }: { onGoToWallet?: () => void }) {
           {/* What you receive */}
           <div className="rounded-xl p-4" style={{ background: "#1a1b2e", border: "1px solid rgba(255,255,255,0.04)" }}>
             <div className="flex items-center gap-3">
-              <img src={DOGGY_LOGO} alt="" className="w-8 h-8 rounded-full object-cover" />
+              <img src={order.token_type === "sol" ? SOL_LOGO : DOGGY_LOGO} alt="" className="w-8 h-8 rounded-full object-cover" />
               <div className="flex-1">
                 <p className="text-gray-400 text-xs">Recibirás</p>
                 <p className="text-white text-xl font-bold">{Number(order.doggy_amount).toLocaleString(undefined, { maximumFractionDigits: 2 })} {order.token_type === "sol" ? "SOL" : "DOGGY"}</p>
