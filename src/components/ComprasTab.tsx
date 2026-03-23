@@ -117,7 +117,7 @@ export function ComprasTab({ onGoToWallet }: { onGoToWallet?: () => void }) {
     if (mxn <= 0) { setDoggyAmount(null); setUsdcAmount(null); return; }
     const solUsdDeduct = outputToken === "DOGGY" && solOption !== "none" ? parseFloat(solOption) : 0;
     const mxnForToken = mxn - (solUsdDeduct * usdcMxn);
-    if (mxnForToken <= 0) { setDoggyAmount(null); setUsdcAmount(usdc.toFixed(2)); return; }
+    if (mxnForToken <= 0) { setDoggyAmount(null); return; }
     const usdc = mxnForToken / usdcMxn;
     setUsdcAmount(usdc.toFixed(2));
     if (outputToken === "DOGGY") {
