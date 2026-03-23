@@ -484,8 +484,8 @@ export function ComprasTab({ onGoToWallet }: { onGoToWallet?: () => void }) {
           </div>
         </div>
 
-        {/* SOL for gas option */}
-        {mxnAmount && parseFloat(mxnAmount) >= 10 && usdcMxn && (
+        {/* SOL for gas option (only when buying DOGGY) */}
+        {outputToken === "DOGGY" && mxnAmount && parseFloat(mxnAmount) >= 10 && usdcMxn && (
           <div className="rounded-xl p-3" style={{ background: "#1a1b2e", border: "1px solid rgba(255,255,255,0.04)" }}>
             <div className="flex items-center justify-between mb-2">
               <span className="text-gray-400 text-xs font-medium">SOL para comisiones (gas)</span>
