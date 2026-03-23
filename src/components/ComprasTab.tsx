@@ -404,7 +404,7 @@ export function ComprasTab({ onGoToWallet }: { onGoToWallet?: () => void }) {
               <img src={order.token_type === "sol" ? SOL_LOGO : DOGGY_LOGO} alt="" className="w-8 h-8 rounded-full object-cover" />
               <div className="flex-1">
                 <p className="text-gray-400 text-xs">Recibirás</p>
-                <p className="text-white text-xl font-bold">{Number(order.doggy_amount).toLocaleString(undefined, { maximumFractionDigits: 2 })} {order.token_type === "sol" ? "SOL" : "DOGGY"}</p>
+                <p className="text-white text-xl font-bold">{order.token_type === "sol" ? Number(order.doggy_amount).toFixed(4) : Number(order.doggy_amount).toLocaleString(undefined, { maximumFractionDigits: 2 })} {order.token_type === "sol" ? "SOL" : "DOGGY"}</p>
               </div>
             </div>
           </div>
