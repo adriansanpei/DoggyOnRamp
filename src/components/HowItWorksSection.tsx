@@ -41,19 +41,19 @@ function StepCard({ step, title, description }: StepCardProps) {
 const steps = [
   {
     title: "Crea tu cuenta",
-    description: "Sin experiencia previa. Al registrarte, Doggy OnRamp genera tu wallet automáticamente — lista para recibir tokens desde el primer día.",
+    description: "Regístrate con tu correo, cuenta de X, Apple o Discord.",
   },
   {
-    title: "Tú decides cuánto",
-    description: "Desde $50 MXN ya puedes entrar al mundo crypto. Sin montos mínimos absurdos, sin complicaciones.",
+    title: "Compra DOGGY",
+    description: "Desde $50 mxn y haciendo una transferencia SPEI.",
   },
   {
-    title: "Sin papeleos",
-    description: "No pedimos documentos ni datos personales. Tu identidad es tuya — tus tokens también.",
+    title: "Sin KYC",
+    description: "No te pediremos documentos personales.",
   },
   {
     title: "$DOGGY en tu wallet",
-    description: "En minutos, tus tokens llegan directo a tu wallet. Así de simple. Así de rápido.",
+    description: "En menos de 5 minutos tienes DOGGY en tu cartera.",
   },
 ];
 
