@@ -303,7 +303,7 @@ export function ComprasTab({ onGoToWallet }: { onGoToWallet?: () => void }) {
                 textShadow: "0 0 12px rgba(245,158,11,0.5), 0 0 32px rgba(245,158,11,0.2)",
                 fontFamily: "'Sora', sans-serif",
               }}>
-                +{countValue.toLocaleString("es-MX")} {order?.token_type === "sol" ? "SOL" : "DOGGY"}
+                +{order?.token_type === "sol" ? countValue.toFixed(4) : countValue.toLocaleString("es-MX")} {order?.token_type === "sol" ? "SOL" : "DOGGY"}
               </span>
             </div>
 
