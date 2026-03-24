@@ -207,7 +207,7 @@ export function ComprasTab({ onGoToWallet }: { onGoToWallet?: () => void }) {
       const elapsed = performance.now() - t0;
       if (elapsed < 0) { requestAnimationFrame(tick); return; }
       const progress = Math.min(elapsed / duration, 1);
-      setCountValue(Math.floor(easeOut(progress) * target));
+      setCountValue(order.token_type === "sol" ? easeOut(progress) * target : Math.floor(easeOut(progress) * target));
       if (progress < 1) requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
